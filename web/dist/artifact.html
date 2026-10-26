@@ -1,0 +1,2047 @@
+<title>見積依頼書ジェネレーター</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+/* レイアウト: 左ナビ + 中央の作業エリア + 右の出力サマリ（施工管理系アプリの構成） */
+:root{
+  --bg:#f2f5f3;--card:#fff;--line:#e2e8e4;--line2:#cfd9d3;--ink:#17261e;--sub:#66786d;
+  --nav:#123524;--nav2:#1b4a33;--navink:#cfe3d6;
+  --g50:#eef7f1;--g100:#d8eee1;--g200:#aedcc0;--g500:#1f9d55;--g600:#17844a;--g700:#106b3b;--g900:#0c3b25;
+  --amber:#b7791f;--amber-bg:#fff4d6;--amber-line:#f0d98a;
+  --r:12px;--shadow:0 1px 2px rgba(16,60,36,.05),0 6px 18px -10px rgba(16,60,36,.14);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 "Noto Sans JP","Yu Gothic UI","Meiryo",sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+
+.app{display:grid;grid-template-columns:232px minmax(0,1fr) 272px;min-height:100vh}
+
+/* ---- 左ナビ ---- */
+.side{background:var(--nav);color:var(--navink);padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:26px}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px}
+.brand b{display:block;color:#fff;font-size:15px;line-height:1.2}
+.brand small{color:#8fb59f;font-size:11px}
+.logo{width:32px;height:32px;border-radius:9px;background:var(--g500);position:relative;flex:none}
+.logo::before{content:"";position:absolute;left:7px;right:7px;bottom:8px;height:3px;background:#fff;border-radius:2px}
+.logo::after{content:"";position:absolute;left:7px;top:8px;width:18px;height:11px;border:3px solid #fff;border-bottom:0;border-radius:2px 2px 0 0}
+#nav{display:flex;flex-direction:column;gap:4px}
+#nav a{display:flex;align-items:center;gap:12px;padding:10px 10px;border-radius:10px;color:var(--navink);text-decoration:none;transition:background .15s}
+#nav a:hover{background:var(--nav2)}
+#nav a.on{background:var(--nav2);color:#fff}
+#nav i{width:24px;height:24px;border-radius:50%;border:1.5px solid #4c7b62;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;flex:none}
+#nav a.on i{background:var(--g500);border-color:var(--g500);color:#fff}
+#nav span{display:flex;flex-direction:column;line-height:1.3;font-weight:500}
+#nav small{font-size:11px;color:#8fb59f;font-weight:400;min-height:14px}
+.sidenote{margin:auto 8px 0;font-size:11px;line-height:1.7;color:#8fb59f;border-top:1px solid #285640;padding-top:14px}
+
+/* ---- 上部バー ---- */
+.content{min-width:0}
+.top{position:sticky;top:0;z-index:5;background:rgba(242,245,243,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.crumb{display:flex;gap:8px;align-items:baseline;min-width:0}
+.crumb span{color:var(--sub);font-size:12px}.crumb .sep{color:var(--line2)}
+.crumb b{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.chip{font-size:12px;font-weight:500;padding:2px 10px;border-radius:99px;background:var(--g50);color:var(--g700);border:1px solid var(--g100)}
+.chip.vendor{background:#fff;color:var(--ink);border-color:var(--line2)}
+.banner{margin:14px 28px 0;padding:8px 14px;background:var(--amber-bg);border:1px solid var(--amber-line);color:#6b4a0f;border-radius:10px;font-size:13px}
+main{padding:20px 28px 56px;display:grid;gap:18px}
+
+/* ---- カード ---- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 24px 24px;box-shadow:var(--shadow);min-width:0}
+.card-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+h2{margin:0;font-size:16px;font-weight:700;color:var(--g900)}
+.card-h span{color:var(--sub);font-size:12px}
+h3{margin:22px 0 8px;font-size:13px;font-weight:700;color:var(--g700)}
+h3 small{color:var(--sub);font-weight:400;font-size:12px;margin-left:6px}
+.hint{margin:8px 0 0;color:var(--sub);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px 16px}
+.wide{grid-column:1/-1}.block{display:flex;margin-top:18px}
+.split{display:flex;gap:36px;flex-wrap:wrap;margin-top:6px}
+label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:500;color:var(--sub);min-width:0}
+input,textarea{font:inherit;font-weight:400;color:var(--ink);padding:8px 11px;border:1px solid var(--line2);border-radius:8px;background:#fff;width:100%;transition:border-color .15s,box-shadow .15s}
+input:hover,textarea:hover{border-color:#9db8a8}
+input:focus-visible,textarea:focus-visible,button:focus-visible{outline:0;border-color:var(--g500);box-shadow:0 0 0 3px var(--g100)}
+.unit{display:flex;align-items:center;position:relative}
+.unit input{padding-right:40px;text-align:right}
+.unit em{position:absolute;right:11px;font-style:normal;font-size:12px;color:var(--sub);pointer-events:none}
+.calc{margin:14px 0 0;display:inline-block;color:var(--g700);font-weight:700;font-size:13px;background:var(--g50);border:1px solid var(--g100);border-radius:8px;padding:3px 12px}
+.calc:empty{display:none}
+
+/* ---- セグメント ---- */
+.seg{display:inline-flex;background:#eaf0ec;border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg label{flex-direction:row;position:relative;cursor:pointer;padding:6px 18px;border-radius:8px;color:var(--sub);font-size:13px;font-weight:500;transition:all .15s}
+.seg input{position:absolute;opacity:0;width:0;height:0}
+.seg label:hover,.seg button:hover{color:var(--g900)}
+.seg label:has(input:checked),.seg button.on{background:#fff;color:var(--g700);font-weight:700;box-shadow:0 1px 3px rgba(16,60,36,.18)}
+.seg label:has(input:focus-visible){box-shadow:0 0 0 3px var(--g100)}
+.seg button{border:0;background:transparent;color:var(--sub);padding:6px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.seg.types{margin-bottom:16px}
+
+/* ---- 工事カード ---- */
+.cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:10px}
+.cat{flex-direction:column;align-items:flex-start;gap:10px;padding:14px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;color:var(--ink);font-size:14px;font-weight:700;background:#fff;transition:all .15s;position:relative}
+.cat:hover{border-color:var(--g200);box-shadow:var(--shadow)}
+.cat input{position:absolute;opacity:0;width:0;height:0}
+.cat .ico{width:36px;height:36px;border-radius:10px;background:#eef2f0;color:var(--sub);display:grid;place-items:center;transition:all .15s}
+.cat .ico svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cat small{font-weight:400;color:var(--sub);font-size:12px;margin-top:-6px}
+.cat::after{content:"";position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line2);background:#fff center/12px no-repeat}
+.cat.on{border-color:var(--g500);background:var(--g50)}
+.cat.on .ico{background:var(--g500);color:#fff}
+.cat.on::after{border-color:var(--g500);background-color:var(--g500);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.4 2.4 4.6-5' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.cat:has(input:focus-visible){box-shadow:0 0 0 3px var(--g100)}
+
+/* ---- 内訳テーブル ---- */
+details{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:#fff;overflow:hidden}
+summary{cursor:pointer;padding:11px 16px;font-weight:700;color:var(--g900);background:#f7faf8;list-style:none;display:flex;align-items:center;gap:10px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"";width:7px;height:7px;border-right:2px solid var(--g600);border-bottom:2px solid var(--g600);transform:rotate(-45deg);transition:transform .15s;margin:0 4px 0 2px}
+details[open]>summary::before{transform:rotate(45deg)}
+details[open]>summary{border-bottom:1px solid var(--line)}
+summary .no{font-size:12px;font-weight:700;color:#fff;background:var(--g600);border-radius:6px;padding:0 7px}
+summary small{margin-left:auto;font-weight:500;color:var(--sub);font-size:12px}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{border-top:1px solid var(--line);padding:3px 6px;text-align:left}
+thead th{border-top:0}
+th{font-size:11px;color:var(--sub);background:#fbfcfb;font-weight:500;padding:7px 8px;letter-spacing:.04em}
+tbody tr:hover td{background:#fafcfb}
+td input{padding:5px 8px;border-color:transparent;background:transparent}
+td input:hover{border-color:var(--line2);background:#fff}
+td input:focus-visible{background:#fff}
+td.q{width:104px}td.q input{text-align:right}td.u{width:76px}td.ac{width:84px;white-space:nowrap;text-align:right}
+tr.group td{background:var(--g50)}
+tr.group:hover td{background:var(--g50)}
+tr.group td input[data-f=name]{font-weight:700;color:var(--g700)}
+tr.todo td.q input{background:var(--amber-bg);border-color:var(--amber-line)}
+.mini{border:1px solid var(--line);background:#fff;border-radius:7px;cursor:pointer;padding:2px 8px;font-size:12px;color:var(--sub);transition:all .15s}
+.mini:hover{background:var(--g50);border-color:var(--g500);color:var(--g700)}
+.tools{padding:10px 14px;display:flex;gap:8px;border-top:1px solid var(--line);background:#fbfcfb}
+.tools .mini{padding:4px 12px;color:var(--g700);border-style:dashed;border-color:var(--g200)}
+.empty{color:var(--sub);text-align:center;padding:28px 0;border:1.5px dashed var(--line2);border-radius:10px}
+
+/* ---- 右サマリ ---- */
+.summary{position:sticky;top:0;height:100vh;padding:20px 18px 20px 4px;display:flex;flex-direction:column;gap:14px}
+.sum-body{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}
+.sum-body h4{margin:0 0 8px;font-size:12px;color:var(--sub);font-weight:500;letter-spacing:.06em}
+dl{margin:0}dl>div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+dl>div:first-child{border-top:0}
+dt{color:var(--sub);font-size:12px}dd{margin:0;font-weight:700;text-align:right}
+dd.warn{color:var(--amber)}
+.sum-actions{display:flex;flex-direction:column;gap:8px}
+#status{color:var(--g700);font-size:12px;min-height:18px}
+button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transition:all .15s}
+.primary{background:var(--g600);color:#fff;border:0;font-weight:700;box-shadow:0 6px 14px -8px rgba(16,108,58,.8)}
+.primary:hover{background:var(--g700)}
+.primary:disabled{opacity:.6}
+.ghost{background:#fff;border:1px solid var(--line2);color:var(--g700);font-weight:500}
+.ghost:hover{background:var(--g50);border-color:var(--g500)}
+
+/* ---- 狭い画面 ---- */
+@media (max-width:1180px){
+  .app{grid-template-columns:200px minmax(0,1fr)}
+  .summary{position:fixed;left:0;right:0;bottom:0;top:auto;height:auto;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);flex-direction:row;align-items:center;z-index:9}
+  .side{padding-bottom:84px}
+  .sum-body{display:none}
+  .sum-actions{flex-direction:row;align-items:center;width:100%}
+  #status{margin-right:auto}
+  main{padding-bottom:96px}
+}
+@media (max-width:760px){
+  .app{display:block}
+  .side{position:static;height:auto;flex-direction:row;align-items:center;padding:12px 16px;gap:12px;overflow-x:auto}
+  .brand{flex:none;padding:0}.brand small{display:none}.brand b{white-space:nowrap}
+  .sidenote,#nav small{display:none}
+  #nav{flex-direction:row}
+  #nav a{padding:6px 10px;white-space:nowrap}
+  .top{padding:12px 16px;top:0}
+  main{padding:16px 16px 96px}
+  .banner{margin:12px 16px 0}
+  .card{padding:16px}
+  .chips{margin-left:0}
+  .ghost{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
+
+
+.app{min-height:100vh}
+@media (max-width:760px){.top,main,.banner,.side{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}.banner{margin-left:0;margin-right:0;border-radius:0}}
+@media (max-width:1180px){.summary{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
+
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" integrity="sha512-dlPw+ytv/6JyepmelABrgeYgHI0O+frEwgfnPdXDTOIZz+eDgfW07QXG02/O8COfivBdGNINy+Vex+lYmJ5rxw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<div class="app">
+
+  <aside class="side">
+    <div class="brand"><span class="logo" aria-hidden="true"></span><div><b>見積依頼書</b><small>ジェネレーター</small></div></div>
+    <nav id="nav">
+      <a href="#property" class="on"><i>1</i><span>物件情報<small id="navP"></small></span></a>
+      <a href="#works"><i>2</i><span>工事の選択<small id="navW"></small></span></a>
+      <a href="#detail"><i>3</i><span>内訳の確認<small id="navD"></small></span></a>
+    </nav>
+    <p class="sidenote">単価は業者が入力します。<br>金額・小計・合計は自動計算されます。</p>
+  </aside>
+
+  <div class="content">
+    <header class="top">
+      <div class="crumb"><span>見積依頼</span><span class="sep">/</span><b id="topTitle">新規の見積依頼</b></div>
+      <div class="chips" id="topChips"></div>
+    </header>
+    <p class="banner" id="sampleNote">サンプル版です。入力内容は保存されません。床面積などは例として入っています。</p>
+
+    <main>
+      <section class="card" id="property">
+        <div class="card-h"><h2>物件情報</h2><span>見積依頼の基本条件</span></div>
+        <div class="grid">
+          <label>お客様名<input data-k="customer_name" placeholder="例: 山田太郎"></label>
+          <label>工事名<input data-k="work_title" value="リノベーション工事"></label>
+          <label class="wide">物件所在地<input data-k="address" placeholder="例: 札幌市中央区…"></label>
+          <label>依頼元（自社名）<input data-k="company_name"></label>
+          <label>提出先（業者名）<input data-k="vendor_name" placeholder="業者ごとに出力する場合に入力"></label>
+          <label>工事希望時期<input data-k="work_period" placeholder="例: 2026年12月〜"></label>
+          <label>見積提出期限<input type="date" data-k="due_date"></label>
+        </div>
+
+        <div class="split">
+          <div>
+            <h3>構造</h3>
+            <div class="seg" id="structures">
+              <label><input type="radio" name="structure" value="wood" checked>木造</label>
+              <label><input type="radio" name="structure" value="steel">鉄骨造</label>
+              <label><input type="radio" name="structure" value="rc">RC造</label>
+            </div>
+          </div>
+          <div>
+            <h3>階数</h3>
+            <div class="seg" id="floors">
+              <label><input type="radio" name="floors" value="1">平屋</label>
+              <label><input type="radio" name="floors" value="2" checked>2階建て</label>
+              <label><input type="radio" name="floors" value="3">3階建て</label>
+            </div>
+          </div>
+        </div>
+        <p class="hint">構造と階数で、入力欄と工事内訳が絞り込まれます。</p>
+
+        <h3>数量の元になる数値 <small>入力すると、該当する項目の数量が自動で入ります</small></h3>
+        <div class="grid nums">
+          <label data-floor="1">1階床面積<span class="unit"><input type="number" step="0.01" data-n="floor1_area"><em>㎡</em></span></label>
+          <label data-floor="2">2階床面積<span class="unit"><input type="number" step="0.01" data-n="floor2_area"><em>㎡</em></span></label>
+          <label data-floor="3">3階床面積<span class="unit"><input type="number" step="0.01" data-n="floor3_area"><em>㎡</em></span></label>
+          <label data-need="roof_area">屋根面積<span class="unit"><input type="number" step="0.01" data-n="roof_area"><em>㎡</em></span></label>
+          <label data-need="wall_area">外壁面積<span class="unit"><input type="number" step="0.01" data-n="wall_area"><em>㎡</em></span></label>
+          <label data-need="scaffold_area">足場面積<span class="unit"><input type="number" step="0.01" data-n="scaffold_area" placeholder="空欄なら外壁面積"><em>㎡</em></span></label>
+          <label data-need="toilet_count">トイレ数<span class="unit"><input type="number" step="1" data-n="toilet_count"><em>ヶ所</em></span></label>
+          <label data-need="cloth_len">クロス貼り延長<span class="unit"><input type="number" step="0.1" data-n="cloth_len"><em>m</em></span></label>
+        </div>
+        <p class="calc" id="calc"></p>
+        <label class="wide block">備考・特記事項（業者への伝達事項）<textarea data-k="remarks" rows="3" placeholder="搬入経路、工事時間の制限、既存設備の状況など"></textarea></label>
+      </section>
+
+      <section class="card" id="works">
+        <div class="card-h"><h2>工事の選択</h2><span>タイプで初期選択し、カードで微調整できます</span></div>
+        <div class="seg types" id="types"></div>
+        <div id="cats" class="cats"></div>
+      </section>
+
+      <section class="card" id="detail">
+        <div class="card-h"><h2>内訳の確認</h2><span>数量・仕様・単位は直接編集できます。単価はExcelで業者が入力します</span></div>
+        <div id="detailBody"></div>
+      </section>
+    </main>
+  </div>
+
+  <aside class="summary" id="summary">
+    <div class="sum-body">
+      <h4>出力の内容</h4>
+      <dl>
+        <div><dt>構造・階数</dt><dd id="sStruct">—</dd></div>
+        <div><dt>延床面積</dt><dd id="sArea">—</dd></div>
+        <div><dt>工事</dt><dd id="sWorks">—</dd></div>
+        <div><dt>内訳項目</dt><dd id="sItems">—</dd></div>
+        <div><dt>数量の要確認</dt><dd id="sTodo">—</dd></div>
+      </dl>
+    </div>
+    <div class="sum-actions">
+      <span id="status"></span>
+      
+      <button id="export" class="primary">Excelを出力</button>
+    </div>
+  </aside>
+</div>
+
+<script>
+const CATALOG = {
+ "categories": [
+  {
+   "id": 1,
+   "name": "解体工事",
+   "items": [
+    {
+     "name": "1階スケルトン解体処分",
+     "spec": "",
+     "qty": 63.6,
+     "unit": "㎡",
+     "basis": "floor1_area",
+     "factor": 1
+    },
+    {
+     "name": "2階スケルトン解体処分",
+     "spec": "",
+     "qty": 33.0,
+     "unit": "㎡",
+     "basis": "floor2_area",
+     "factor": 1,
+     "minFloors": 2
+    },
+    {
+     "name": "3階スケルトン解体処分",
+     "spec": "",
+     "qty": 1,
+     "unit": "㎡",
+     "basis": "floor3_area",
+     "factor": 1,
+     "minFloors": 3
+    },
+    {
+     "name": "浴室解体処分",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "1階和室、脱衣室等解体処分",
+     "spec": "",
+     "qty": 26.0,
+     "unit": "㎡"
+    },
+    {
+     "name": "トイレ解体処分",
+     "spec": "",
+     "qty": 2.0,
+     "unit": "ヶ処",
+     "basis": "toilet_count",
+     "factor": 1
+    },
+    {
+     "name": "物置屋根解体処分",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "小屋根解体処分",
+     "spec": "アルミバルコニー共",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "コンクリート斫り・コア抜き",
+     "spec": "",
+     "qty": 1,
+     "unit": "式",
+     "structures": [
+      "rc"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "name": "基礎工事",
+   "items": [
+    {
+     "name": "玄関土間・ポーチ",
+     "spec": "300角磁器質タイル or 洗出し仕上げ",
+     "qty": 6.6,
+     "unit": "㎡"
+    },
+    {
+     "name": "ポーチ立上り部",
+     "spec": "〃",
+     "qty": 12.2,
+     "unit": "ｍ"
+    },
+    {
+     "name": "サッシモルタル詰め",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "浴室土間コンクリート",
+     "spec": "洗面室土間共",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "勝手口階段",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "name": "木工事",
+   "items": [
+    {
+     "name": "材木費",
+     "spec": "",
+     "qty": 37.0,
+     "unit": "坪",
+     "basis": "tsubo",
+     "factor": 1,
+     "structures": [
+      "wood"
+     ]
+    },
+    {
+     "name": "木造作費",
+     "spec": "",
+     "qty": 37.0,
+     "unit": "坪",
+     "basis": "tsubo",
+     "factor": 1,
+     "structures": [
+      "wood"
+     ]
+    },
+    {
+     "name": "金物費",
+     "spec": "",
+     "qty": 37.0,
+     "unit": "坪",
+     "basis": "tsubo",
+     "factor": 1,
+     "structures": [
+      "wood"
+     ]
+    },
+    {
+     "name": "防蟻処理",
+     "spec": "ホウ酸散布",
+     "qty": 122.0,
+     "unit": "㎡",
+     "basis": "total_area",
+     "factor": 1,
+     "structures": [
+      "wood"
+     ]
+    },
+    {
+     "name": "軽量鉄骨下地（壁・天井）",
+     "spec": "",
+     "qty": 1,
+     "unit": "㎡",
+     "basis": "total_area",
+     "factor": 1,
+     "structures": [
+      "steel",
+      "rc"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "name": "屋根板金工事",
+   "items": [
+    {
+     "group": true,
+     "name": "【屋根】"
+    },
+    {
+     "name": "屋根GL立平葺き",
+     "spec": "",
+     "qty": 83.0,
+     "unit": "㎡",
+     "basis": "roof_area",
+     "factor": 1
+    },
+    {
+     "name": "屋根ｶﾗｸｻ",
+     "spec": "",
+     "qty": 47.0,
+     "unit": "ⅿ"
+    },
+    {
+     "name": "ｺﾞﾑｱｽﾙｰﾌｨﾝｸﾞ",
+     "spec": "",
+     "qty": 83.0,
+     "unit": "㎡",
+     "basis": "roof_area",
+     "factor": 1
+    },
+    {
+     "name": "雪止め1段",
+     "spec": "",
+     "qty": 78.0,
+     "unit": "ヶ"
+    },
+    {
+     "name": "立上水切",
+     "spec": "",
+     "qty": 20.0,
+     "unit": "ⅿ"
+    },
+    {
+     "name": "棟板金",
+     "spec": "",
+     "qty": 11.5,
+     "unit": "ⅿ"
+    },
+    {
+     "name": "谷板工事",
+     "spec": "",
+     "qty": 1.7,
+     "unit": "ⅿ"
+    },
+    {
+     "name": "荷上げﾚｯｶｰ代",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "group": true,
+     "name": "【外壁】"
+    },
+    {
+     "name": "6山角波工事",
+     "spec": "",
+     "qty": 123.3,
+     "unit": "㎡",
+     "basis": "wall_area",
+     "factor": 1
+    },
+    {
+     "name": "土台水切り",
+     "spec": "",
+     "qty": 29.5,
+     "unit": "ⅿ"
+    },
+    {
+     "name": "軒天、窓廻りｺｰﾅｰ水切り",
+     "spec": "",
+     "qty": 75.0,
+     "unit": "ⅿ"
+    },
+    {
+     "name": "出角水切り",
+     "spec": "",
+     "qty": 21.8,
+     "unit": "ⅿ"
+    },
+    {
+     "group": true,
+     "name": "【雨樋】"
+    },
+    {
+     "name": "半丸工事",
+     "spec": "",
+     "qty": 26.5,
+     "unit": "ⅿ"
+    },
+    {
+     "name": "受金",
+     "spec": "",
+     "qty": 55.0,
+     "unit": "本"
+    },
+    {
+     "name": "上合",
+     "spec": "",
+     "qty": 7.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "曲がり",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ヶ"
+    },
+    {
+     "name": "竪樋工事",
+     "spec": "",
+     "qty": 28.0,
+     "unit": "ⅿ"
+    },
+    {
+     "name": "ｴﾙﾎﾞｿｹｯﾄ",
+     "spec": "",
+     "qty": 33.0,
+     "unit": "ヶ"
+    },
+    {
+     "name": "ﾂｶﾐ金",
+     "spec": "",
+     "qty": 24.0,
+     "unit": "ヶ"
+    },
+    {
+     "name": "雑材消耗品費",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "name": "内外装工事",
+   "items": [
+    {
+     "name": "KMEW ｾﾗﾃﾞｨｰﾙ16･親水ﾊﾟﾜｰｺｰﾄ",
+     "spec": "",
+     "qty": 108.0,
+     "unit": "枚"
+    },
+    {
+     "name": "同質出隅 L=455",
+     "spec": "",
+     "qty": 58.0,
+     "unit": "本"
+    },
+    {
+     "name": "横張り用ﾛﾝｸﾞｽﾀｰﾀｰ5㎜",
+     "spec": "",
+     "qty": 12.0,
+     "unit": "本"
+    },
+    {
+     "name": "縦・横張り用留め金具5㎜",
+     "spec": "平板用",
+     "qty": 11.0,
+     "unit": "袋"
+    },
+    {
+     "name": "横張り用留め金具5㎜",
+     "spec": "出隅用",
+     "qty": 3.0,
+     "unit": "袋"
+    },
+    {
+     "name": "ｽﾍﾟｰｻｰ5",
+     "spec": "(20本入1箱）",
+     "qty": 1.0,
+     "unit": "箱"
+    },
+    {
+     "name": "留め金具用ﾋﾞｽ25",
+     "spec": "木下地用",
+     "qty": 2.0,
+     "unit": "箱"
+    },
+    {
+     "name": "ﾊｯﾄｼﾞｮｲﾅｰ",
+     "spec": "",
+     "qty": 35.0,
+     "unit": "本"
+    },
+    {
+     "name": "ﾘﾝｸﾞ釘45",
+     "spec": "R400 40本入",
+     "qty": 4.0,
+     "unit": "袋"
+    },
+    {
+     "name": "補修塗料 ﾄｯﾌﾟ",
+     "spec": "",
+     "qty": 2.0,
+     "unit": "箱"
+    },
+    {
+     "name": "補修塗料 ﾍﾞｰｽ",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "箱"
+    },
+    {
+     "name": "運賃",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "12.5㎜ﾀｲｶﾎﾞｰﾄﾞ",
+     "spec": "910*1820",
+     "qty": 220.0,
+     "unit": "枚"
+    },
+    {
+     "name": "9.5㎜ﾀｲｶﾎﾞｰﾄﾞ",
+     "spec": "910*1820",
+     "qty": 80.0,
+     "unit": "枚"
+    },
+    {
+     "name": "構造用合板12㎜ﾗｰﾁ",
+     "spec": "910*1820",
+     "qty": 78.0,
+     "unit": "枚"
+    },
+    {
+     "name": "12.5㎜ Mｸﾛｽ",
+     "spec": "",
+     "qty": 10.0,
+     "unit": "枚"
+    },
+    {
+     "name": "9㎜ﾗﾜﾝﾍﾞﾆﾔ",
+     "spec": "910*1820",
+     "qty": 11.0,
+     "unit": "枚"
+    },
+    {
+     "name": "ｲｸﾀ  銘木ﾗｽﾃｨｯｸ",
+     "spec": "",
+     "qty": 34.0,
+     "unit": "ｹｰｽ"
+    },
+    {
+     "name": "ｲｸﾀ  ﾘﾌｫｰﾑ框6尺",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ｾｯﾄ"
+    },
+    {
+     "name": "ﾏｯﾄｴｰｽHG16 100㎜ 3坪入",
+     "spec": "壁用",
+     "qty": 21.0,
+     "unit": "ｾｯﾄ"
+    },
+    {
+     "name": "ｽﾀｲﾛﾌｫｰﾑFG 75㎜",
+     "spec": "床用 910*1820",
+     "qty": 55.0,
+     "unit": "枚"
+    },
+    {
+     "name": "窓枠130(2本入）",
+     "spec": "",
+     "qty": 11.0,
+     "unit": "ｾｯﾄ"
+    },
+    {
+     "name": "巾木2型 12入",
+     "spec": "",
+     "qty": 3.0,
+     "unit": "ｹｰｽ"
+    },
+    {
+     "name": "ﾌｸﾋﾞ ｴｱﾃｯｸｽｼｰﾄ",
+     "spec": "",
+     "qty": 7.0,
+     "unit": "巻"
+    },
+    {
+     "name": "ｴｰｽｸﾛｽ 031-AK(白)",
+     "spec": "50㎜*20ⅿ",
+     "qty": 10.0,
+     "unit": "本"
+    },
+    {
+     "name": "ﾀｲｶﾞｰEXﾊｲﾊﾟｰ 9.5㎜",
+     "spec": "",
+     "qty": 90.0,
+     "unit": "枚"
+    },
+    {
+     "name": "EXﾊｲﾊﾟｰ用連結釘",
+     "spec": "",
+     "qty": 50.0,
+     "unit": "巻"
+    },
+    {
+     "name": "構造用合板 ﾗｰﾁ",
+     "spec": "9*910*3030",
+     "qty": 10.0,
+     "unit": "枚"
+    },
+    {
+     "name": "ﾀｲｶﾞｰﾊｲﾊﾟｰﾊｰﾄﾞ Tﾈｸｽﾄ",
+     "spec": "",
+     "qty": 10.0,
+     "unit": "枚"
+    },
+    {
+     "name": "ﾍﾞﾘﾃｨｽ建具、収納 一式",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "ﾍﾞﾘﾃｨｽ階段",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "荷揚費用",
+     "spec": "",
+     "qty": 2.0,
+     "unit": "回"
+    },
+    {
+     "name": "南海ｱｰﾄﾗﾝﾊﾞｰ",
+     "spec": "20*450*1450",
+     "qty": 2.0,
+     "unit": "枚"
+    },
+    {
+     "name": "南海ｱｰﾄﾗﾝﾊﾞｰ",
+     "spec": "20*450*900",
+     "qty": 4.0,
+     "unit": "枚"
+    },
+    {
+     "name": "ｼﾝﾌﾟﾙｱﾙﾐ棚柱",
+     "spec": "",
+     "qty": 3.0,
+     "unit": "ｾｯﾄ"
+    },
+    {
+     "name": "ﾀﾓ積層材",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "ﾊｲﾗｯｸﾌﾈﾝ 6㎜",
+     "spec": "910*1820",
+     "qty": 40.0,
+     "unit": "枚"
+    },
+    {
+     "name": "ﾊｯﾄ型 白 1820㎜",
+     "spec": "",
+     "qty": 40.0,
+     "unit": "本"
+    },
+    {
+     "name": "ﾌｸﾋﾞ鋼製束 N460T",
+     "spec": "",
+     "qty": 50.0,
+     "unit": "本"
+    },
+    {
+     "name": "枕棚ﾎﾜｲﾄ 910M 6尺ﾊﾟｲﾌﾟ付",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ｾｯﾄ"
+    },
+    {
+     "name": "枕棚ﾎﾜｲﾄ 910M 4.5尺ﾊﾟｲﾌﾟ付",
+     "spec": "",
+     "qty": 2.0,
+     "unit": "ｾｯﾄ"
+    },
+    {
+     "name": "中段ﾎﾜｲﾄ 910M 6尺",
+     "spec": "1840*850*85",
+     "qty": 1.0,
+     "unit": "ｾｯﾄ"
+    },
+    {
+     "name": "L字ｺｰﾅｰ&目地ｷｬｯﾌﾟ ﾎﾜｲﾄ柄枕棚用",
+     "spec": "",
+     "qty": 2.0,
+     "unit": "ｾｯﾄ"
+    },
+    {
+     "name": "枕棚ﾎﾜｲﾄ 910M 3尺ﾊﾟｲﾌﾟ付",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ｾｯﾄ"
+    },
+    {
+     "name": "枕棚ﾎﾜｲﾄ 910M 6尺ﾊﾟｲﾌﾟ付",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ｾｯﾄ"
+    },
+    {
+     "name": "中段ﾎﾜｲﾄ 910M 6尺",
+     "spec": "1840*850*85",
+     "qty": 1.0,
+     "unit": "ｾｯﾄ"
+    },
+    {
+     "name": "天井ウレタン吹付け",
+     "spec": "A種-1H 厚130ｍｍ",
+     "qty": 65.0,
+     "unit": "㎡",
+     "basis": "floor1_area",
+     "factor": 1
+    },
+    {
+     "name": "ｸﾛｽ貼り",
+     "spec": "",
+     "qty": 670.0,
+     "unit": "ⅿ",
+     "basis": "cloth_len",
+     "factor": 1
+    },
+    {
+     "name": "ﾌﾛｱﾀｲﾙ貼り",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "コーナーテープ等",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "name": "鋼製建具工事",
+   "items": [
+    {
+     "name": "AD1 玄関",
+     "spec": "片開き P17型",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW1 玄関",
+     "spec": "FIX窓",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW2 玄関",
+     "spec": "〃",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW3 1階ﾘﾋﾞﾝｸﾞ",
+     "spec": "引違い窓",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW4 1階ﾘﾋﾞﾝｸﾞ",
+     "spec": "FIX窓",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW5 1階ﾘﾋﾞﾝｸﾞ",
+     "spec": "引違い窓",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW6 ｷｯﾁﾝ",
+     "spec": "縦すべり出し窓",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW7 廊下",
+     "spec": "上げ下げ窓",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW8 廊下",
+     "spec": "勝手口ﾄﾞｱ",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW9 1階寝室",
+     "spec": "引違い窓",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW10 1階寝室",
+     "spec": "引違い窓",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW11 1階納戸",
+     "spec": "縦すべり出し窓",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW12 1階ﾄｲﾚ",
+     "spec": "FIX窓",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW13 1階洗面脱衣室",
+     "spec": "FIX窓",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW14 2階洋室",
+     "spec": "引違い窓 内窓",
+     "qty": 1.0,
+     "unit": "ヶ処",
+     "minFloors": 2
+    },
+    {
+     "name": "AW15 1階和室1",
+     "spec": "〃",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "AW16 1階和室2",
+     "spec": "〃",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "サッシ搬入費",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "内窓設置費",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "風除室",
+     "spec": "材工共 現状参考",
+     "qty": 1.0,
+     "unit": "式"
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "name": "塗装工事",
+   "items": [
+    {
+     "name": "破風板、鼻隠し ｳﾚﾀﾝ系塗装",
+     "spec": "",
+     "qty": 110.0,
+     "unit": "ⅿ"
+    },
+    {
+     "name": "軒裏 ｶﾁｵﾝ系塗装",
+     "spec": "",
+     "qty": 110.0,
+     "unit": "㎡"
+    },
+    {
+     "name": "内部塗装",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "name": "電気設備工事",
+   "items": [
+    {
+     "group": true,
+     "name": "【メーター及び分電盤工事】"
+    },
+    {
+     "name": "分電盤",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "電線",
+     "spec": "",
+     "qty": 20.0,
+     "unit": "ｍ"
+    },
+    {
+     "name": "計器箱",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "個"
+    },
+    {
+     "name": "電力申請費",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "電工費",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "group": true,
+     "name": "【照明工事】"
+    },
+    {
+     "name": "照明配線",
+     "spec": "",
+     "qty": 29.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "ﾀﾞｳﾝﾗｲﾄ取付",
+     "spec": "(墨出し・開口・取付）",
+     "qty": 14.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "照明取付",
+     "spec": "(墨出し・下地・取付）",
+     "qty": 13.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "浴室照明結線",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "方切ｽｲｯﾁ",
+     "spec": "",
+     "qty": 16.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "3路ｽｲｯﾁ",
+     "spec": "",
+     "qty": 4.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "4路ｽｲｯﾁ",
+     "spec": "",
+     "qty": 2.0,
+     "unit": "ヶ処"
+    },
+    {
+     "group": true,
+     "name": "【換気工事】"
+    },
+    {
+     "name": "換気配線",
+     "spec": "",
+     "qty": 4.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "換気取付",
+     "spec": "",
+     "qty": 4.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "自然給気取付",
+     "spec": "",
+     "qty": 6.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "100φ換気ﾀﾞｸﾄ工事",
+     "spec": "",
+     "qty": 4.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "100φ換気ﾀﾞｸﾄ工事",
+     "spec": "(自然吸気）",
+     "qty": 6.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "浴室換気ﾀﾞｸﾄ工事",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "ﾚﾝｼﾞﾌｰﾄﾞﾀﾞｸﾄ工事",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "ﾊﾟｲﾛｯﾄｽｲｯﾁ",
+     "spec": "",
+     "qty": 4.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "100φ貫通部防水処理",
+     "spec": "",
+     "qty": 10.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "150φ貫通部防水処理",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "100φﾊﾟｲﾌﾟﾌｰﾄﾞ",
+     "spec": "",
+     "qty": 10.0,
+     "unit": "個"
+    },
+    {
+     "name": "150φﾊﾟｲﾌﾟﾌｰﾄﾞ",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "個"
+    },
+    {
+     "group": true,
+     "name": "【コンセント工事】"
+    },
+    {
+     "name": "ｼﾝｸﾞﾙｺﾝｾﾝﾄ",
+     "spec": "",
+     "qty": 3.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "ﾀﾞﾌﾞﾙｺﾝｾﾝﾄ",
+     "spec": "",
+     "qty": 18.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "4口ｺﾝｾﾝﾄ",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "ｱｰｽ付きｺﾝｾﾝﾄ",
+     "spec": "",
+     "qty": 3.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "防水ｺﾝｾﾝﾄ",
+     "spec": "(ｽﾏｰﾄｼﾘｰｽﾞ)",
+     "qty": 2.0,
+     "unit": "ヶ処"
+    },
+    {
+     "group": true,
+     "name": "【専用回路工事】"
+    },
+    {
+     "name": "家電専用回路ｺﾝｾﾝﾄ",
+     "spec": "",
+     "qty": 2.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "IHｸｯｷﾝｸﾞ",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "ｴｱｺﾝ専用回路100V",
+     "spec": "",
+     "qty": 3.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "ｴｱｺﾝ専用回路200V",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "食洗",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "洗濯機専用回路",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "浴室換気暖房",
+     "spec": "(電源結線含む）",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "group": true,
+     "name": "【弱電工事】"
+    },
+    {
+     "name": "TVｺﾝｾﾝﾄ",
+     "spec": "",
+     "qty": 4.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "NET一次側配管・入線ｶﾊﾞｰ",
+     "spec": "(配管のみ）",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "ﾄﾞｱﾎﾝ工事",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "ﾎﾞｲﾗｰﾘﾓｺﾝ工事",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "group": true,
+     "name": "【ｱｰｽ工事】"
+    },
+    {
+     "name": "ｱｰｽ線IV2SQ",
+     "spec": "",
+     "qty": 100.0,
+     "unit": "ⅿ"
+    },
+    {
+     "name": "ｱｰｽ棒φ7*900",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "個"
+    },
+    {
+     "name": "電工費",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "group": true,
+     "name": "【防水気密工事】"
+    },
+    {
+     "name": "ｴｱｺﾝ用先行ｽﾘｰﾌﾞ及び防水気密処理",
+     "spec": "",
+     "qty": 4.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "換気ﾀﾞｸﾄ防水気密処理",
+     "spec": "100φ",
+     "qty": 10.0,
+     "unit": "ヶ処"
+    },
+    {
+     "name": "換気ﾀﾞｸﾄ防水気密処理",
+     "spec": "150φ",
+     "qty": 1.0,
+     "unit": "ヶ処"
+    },
+    {
+     "group": true,
+     "name": "【その他電気工事】"
+    },
+    {
+     "name": "内外部電気設備解体工事",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "既設配線点検及び改修工事",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "消耗品及び雑材",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "電工費",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "エアコン取付費",
+     "spec": "",
+     "qty": 3.0,
+     "unit": "台"
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "name": "給排水設備工事",
+   "items": [
+    {
+     "name": "既存器具撤去・外部ﾌﾟﾗｸﾞ止め・排水ｷｬｯﾌﾟ",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "給水設備",
+     "spec": "",
+     "qty": 7.0,
+     "unit": "ヶ"
+    },
+    {
+     "name": "給湯設備",
+     "spec": "",
+     "qty": 5.0,
+     "unit": "ヶ"
+    },
+    {
+     "name": "排水設備",
+     "spec": "",
+     "qty": 7.0,
+     "unit": "ヶ"
+    },
+    {
+     "name": "器具取付",
+     "spec": "(接続部材込み）",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "洗濯水栓",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ヶ"
+    },
+    {
+     "name": "洗濯排水金具",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ヶ"
+    },
+    {
+     "name": "給湯機設置・接続",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "追い炊き配管",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "ｶｯﾀｰ・斫り・掘削工",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "配管工",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "小口径桝",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "ヶ"
+    }
+   ]
+  },
+  {
+   "id": 10,
+   "name": "住宅設備工事",
+   "items": [
+    {
+     "name": "ｼｽﾃﾑｷｯﾁﾝ",
+     "spec": "ｸﾘﾅｯﾌﾟ STEDIA",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "仝上取付設置費",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "ｶｯﾌﾟﾎﾞｰﾄﾞ",
+     "spec": "ｸﾘﾅｯﾌﾟ STEDIA",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "仝上取付設置費",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "ｼｽﾃﾑﾊﾞｽ",
+     "spec": "ｸﾘﾅｯﾌﾟ ｾﾚｳﾞｨｱ",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "仝上取付設置費",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "洗面化粧台",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "14帖用エアコン",
+     "spec": "200V",
+     "qty": 2.0,
+     "unit": "式"
+    },
+    {
+     "name": "架台",
+     "spec": "",
+     "qty": 3.0,
+     "unit": "台"
+    },
+    {
+     "name": "取付部材",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "ドアホン",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "照明器具",
+     "spec": "",
+     "qty": 29.0,
+     "unit": "ヶ所"
+    },
+    {
+     "name": "ガス給湯器",
+     "spec": "リンナイ 24号 フルオート",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "アラウーノ",
+     "spec": "S160 スティックリモコン",
+     "qty": 1.0,
+     "unit": "式"
+    }
+   ]
+  },
+  {
+   "id": 11,
+   "name": "仮設工事",
+   "items": [
+    {
+     "name": "仮設足場組",
+     "spec": "",
+     "qty": 360.0,
+     "unit": "㎡",
+     "basis": "scaffold_area",
+     "factor": 1
+    },
+    {
+     "name": "メッシュシート",
+     "spec": "〃",
+     "qty": 360.0,
+     "unit": "㎡",
+     "basis": "scaffold_area",
+     "factor": 1
+    },
+    {
+     "name": "昇降階段",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "道路使用許可申請費",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "仮設トイレ",
+     "spec": "",
+     "qty": 1.0,
+     "unit": "式"
+    },
+    {
+     "name": "養生清掃費",
+     "spec": "",
+     "qty": 122.0,
+     "unit": "㎡",
+     "basis": "total_area",
+     "factor": 1
+    },
+    {
+     "name": "クリーニング",
+     "spec": "",
+     "qty": 122.0,
+     "unit": "㎡",
+     "basis": "total_area",
+     "factor": 1
+    }
+   ]
+  },
+  {
+   "id": 12,
+   "name": "諸経費",
+   "items": [
+    {
+     "name": "諸経費",
+     "spec": "",
+     "qty": 1,
+     "unit": "式"
+    }
+   ],
+   "summary_only": true
+  }
+ ],
+ "presets": [
+  {
+   "name": "フルリノベーション",
+   "ids": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
+  },
+  {
+   "name": "水回りリフォーム",
+   "ids": [
+    1,
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
+  },
+  {
+   "name": "内装リフォーム",
+   "ids": [
+    1,
+    3,
+    5,
+    7,
+    8,
+    11,
+    12
+   ]
+  },
+  {
+   "name": "外装リフォーム",
+   "ids": [
+    4,
+    5,
+    7,
+    11,
+    12
+   ]
+  }
+ ]
+};
+const API = (window.APP_CONFIG && window.APP_CONFIG.API_BASE || "").replace(/\/$/, "");
+const SQM_PER_TSUBO = 3.30579;
+const $ = (s, r = document) => r.querySelector(s);
+
+let catalog = [];          // [{id,name,items:[...]}]
+const selected = new Set(); // 選択中の大項目id
+const num = {};             // 数量の元になる数値
+let structure = "wood";   // 構造
+let presets = [];
+let floors = 2;             // 階数
+const openCats = new Set(); // 開いている大項目
+const STRUCT = { wood: "木造", steel: "鉄骨造", rc: "RC造" };
+const visible = it => (!it.minFloors || it.minFloors <= floors) && (!it.structures || it.structures.includes(structure));
+
+// ---- 数量の元になる数値 ----
+function basisValues() {
+  const v = { ...num };
+  const fl = [v.floor1_area, v.floor2_area, v.floor3_area].slice(0, floors);
+  if (fl.some(x => x != null)) v.total_area = Math.round(fl.reduce((s, x) => s + (x || 0), 0) * 100) / 100;
+  if (v.floor2_area != null && floors < 2) v.floor2_area = null;
+  if (v.floor3_area != null && floors < 3) v.floor3_area = null;
+  if (v.total_area != null) v.tsubo = Math.round((v.total_area / SQM_PER_TSUBO) * 100) / 100;
+  if (v.scaffold_area == null && v.wall_area != null) v.scaffold_area = v.wall_area;
+  return v;
+}
+
+function applyBasis() {
+  const v = basisValues();
+  for (const c of catalog)
+    for (const it of c.items) {
+      if (!it.basis || it.manual) continue;
+      const b = v[it.basis];
+      if (b != null) it.qty = Math.round(b * (it.factor || 1) * 100) / 100;
+    }
+}
+
+// ---- 描画 ----
+function renderTypes() {
+  const cur = [...selected].sort((a, b) => a - b).join();
+  $("#types").innerHTML = presets.map((p, i) =>
+    `<button type="button" data-p="${i}" class="${[...p.ids].sort((a, b) => a - b).join() === cur ? "on" : ""}">${esc(p.name)}</button>`).join("");
+}
+
+const ICONS = {
+  1: '<path d="M14 4l6 6-3 3-6-6zM12 8L4 16l4 4 8-8"/>',
+  2: '<path d="M3 8l9-4 9 4-9 4zM3 13l9 4 9-4M3 17l9 4 9-4"/>',
+  3: '<path d="M4 20V8l8-4 8 4v12M9 20v-6h6v6M4 12h16"/>',
+  4: '<path d="M2 12l10-8 10 8M5 10v10h14V10"/>',
+  5: '<rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 12h16M12 4v8M8 12v8M16 12v8"/>',
+  6: '<rect x="5" y="3" width="14" height="18" rx="1"/><path d="M12 3v18M5 12h14"/>',
+  7: '<path d="M4 4h12v6H4zM16 7h4v6h-8v3M10 16h4v5h-4z"/>',
+  8: '<path d="M13 2L5 14h6l-1 8 8-12h-6z"/>',
+  9: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+  10: '<path d="M3 12h18v3a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5zM6 12V6a2 2 0 0 1 4 0M5 20l-1 2M19 20l1 2"/>',
+  11: '<path d="M5 3v18M19 3v18M5 7h14M5 12h14M5 17h14"/>',
+  12: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>',
+};
+const icon = id => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[id] || ICONS[12]}</svg>`;
+
+function renderCats() {
+  renderTypes();
+  $("#cats").innerHTML = catalog.map(c => `
+    <label class="cat ${selected.has(c.id) ? "on" : ""}">
+      <input type="checkbox" data-id="${c.id}" ${selected.has(c.id) ? "checked" : ""}>
+      <span class="ico">${icon(c.id)}</span>
+      ${esc(c.name)}<small>${c.items.filter(i => !i.group && visible(i)).length}項目</small>
+    </label>`).join("");
+}
+
+function renderDetail() {
+  const v = basisValues();
+  const cats = catalog.filter(c => selected.has(c.id));
+  $("#detailBody").innerHTML = cats.length ? cats.map(c => `
+    <details ${openCats.has(c.id) ? "open" : ""} data-cat="${c.id}">
+      <summary><span class="no">${c.id}</span>${esc(c.name)}<small>${c.items.filter(i => !i.group && visible(i)).length}項目</small></summary>
+      <div class="tbl"><table>
+        <thead><tr><th>名称</th><th>仕様</th><th>数量</th><th>単位</th><th>摘要</th><th></th></tr></thead>
+        <tbody>
+        ${c.items.map((it, i) => !visible(it) ? "" : `
+          <tr class="${it.group ? "group" : ""} ${it.basis && v[it.basis] == null && !it.manual ? "todo" : ""}" data-i="${i}">
+            <td><input data-f="name" value="${esc(it.name)}"></td>
+            ${it.group ? `<td colspan="4"></td>` : `
+            <td><input data-f="spec" value="${esc(it.spec || "")}"></td>
+            <td class="q"><input data-f="qty" type="number" step="0.01" value="${esc(it.qty ?? "")}" title="${it.basis ? "物件情報から自動入力" : ""}"></td>
+            <td class="u"><input data-f="unit" value="${esc(it.unit || "")}"></td>
+            <td><input data-f="note" value="${esc(it.note || "")}"></td>`}
+            <td class="ac"><button class="mini" data-act="del" title="削除">✕</button><button class="mini" data-act="up" title="上へ">↑</button></td>
+          </tr>`).join("")}
+        </tbody>
+      </table></div>
+      <div class="tools"><button class="mini" data-act="add">＋ 項目を追加</button><button class="mini" data-act="addg">＋ 見出し(【 】)を追加</button></div>
+    </details>`).join("") : `<p class="empty">「工事の選択」で工事を選ぶと、内訳がここに表示されます。</p>`;
+  const n = cats.reduce((s, c) => s + c.items.filter(i => !i.group && visible(i)).length, 0);
+  syncInputs(v);
+  renderSummary(v, cats);
+  $("#status").textContent = `${cats.length}工事 / ${n}項目 を出力`;
+}
+
+function syncInputs(v) {
+  const need = new Set();
+  for (const c of catalog) if (selected.has(c.id)) for (const it of c.items) if (it.basis && visible(it)) need.add(it.basis);
+  document.querySelectorAll("[data-floor]").forEach(l => (l.hidden = +l.dataset.floor > floors));
+  document.querySelectorAll("[data-need]").forEach(l => (l.hidden = !need.has(l.dataset.need)));
+  $("#calc").textContent = v.total_area != null ? `延床面積 ${v.total_area}㎡（約 ${v.tsubo} 坪）` : "";
+}
+
+function renderTop() {
+  const g = k => (document.querySelector(`[data-k=${k}]`)?.value || "").trim();
+  const name = g("customer_name");
+  $("#topTitle").textContent = name ? `${name} 様邸 ${g("work_title")}` : "新規の見積依頼";
+  const chips = [STRUCT[structure], ["", "平屋", "2階建て", "3階建て"][floors]];
+  $("#topChips").innerHTML = chips.map(t => `<span class="chip">${t}</span>`).join("") +
+    (g("vendor_name") ? `<span class="chip vendor">提出先 ${esc(g("vendor_name"))}</span>` : "");
+}
+
+function renderSummary(v, cats) {
+  const items = cats.flatMap(c => c.items.filter(i => !i.group && visible(i)));
+  const todo = items.filter(i => i.basis && v[i.basis] == null && !i.manual).length;
+  $("#sStruct").textContent = `${STRUCT[structure]}・${["", "平屋", "2階建て", "3階建て"][floors]}`;
+  $("#sArea").textContent = v.total_area != null ? `${v.total_area}㎡（${v.tsubo}坪）` : "未入力";
+  $("#sWorks").textContent = `${cats.length}工事`;
+  $("#sItems").textContent = `${items.length}項目`;
+  $("#sTodo").textContent = todo ? `${todo}項目` : "なし";
+  $("#sTodo").className = todo ? "warn" : "";
+  $("#navP").textContent = `${STRUCT[structure]}・${["", "平屋", "2階建て", "3階建て"][floors]}`;
+  $("#navW").textContent = `${cats.length}工事を選択`;
+  $("#navD").textContent = `${items.length}項目`;
+  renderTop();
+}
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+
+// ---- イベント ----
+$("#cats").addEventListener("change", e => {
+  const id = +e.target.dataset.id;
+  e.target.checked ? selected.add(id) : selected.delete(id);
+  renderCats(); renderDetail();
+});
+
+$("#detailBody").addEventListener("input", e => {
+  const tr = e.target.closest("tr"); if (!tr) return;
+  const cat = catalog.find(c => c.id === +e.target.closest("details").dataset.cat);
+  const it = cat.items[+tr.dataset.i], f = e.target.dataset.f;
+  if (f === "qty") { it.qty = e.target.value === "" ? null : +e.target.value; it.manual = true; }
+  else it[f] = e.target.value;
+});
+
+$("#detailBody").addEventListener("toggle", e => {
+  const id = +e.target.dataset.cat;
+  e.target.open ? openCats.add(id) : openCats.delete(id);
+}, true);
+
+$("#types").addEventListener("click", e => {
+  const i = e.target.dataset.p; if (i == null) return;
+  selected.clear(); presets[+i].ids.forEach(id => selected.add(id));
+  renderCats(); renderDetail();
+});
+
+$("#structures").addEventListener("change", e => {
+  structure = e.target.value; applyBasis(); renderCats(); renderDetail();
+});
+
+$("#floors").addEventListener("change", e => {
+  floors = +e.target.value; applyBasis(); renderCats(); renderDetail();
+});
+
+$("#detailBody").addEventListener("click", e => {
+  const act = e.target.dataset.act; if (!act) return;
+  const cat = catalog.find(c => c.id === +e.target.closest("details").dataset.cat);
+  const tr = e.target.closest("tr"), i = tr ? +tr.dataset.i : -1;
+  if (act === "del") cat.items.splice(i, 1);
+  if (act === "up" && i > 0) [cat.items[i - 1], cat.items[i]] = [cat.items[i], cat.items[i - 1]];
+  if (act === "add") cat.items.push({ name: "", spec: "", qty: 1, unit: "式", manual: true });
+  if (act === "addg") cat.items.push({ name: "【】", group: true });
+  renderDetail();
+});
+
+document.addEventListener("input", e => {
+  if (e.target.dataset.k) renderTop();
+  const n = e.target.dataset.n;
+  if (!n) return;
+  num[n] = e.target.value === "" ? null : +e.target.value;
+  applyBasis(); renderDetail();
+});
+
+function propertyData() {
+  const p = {};
+  document.querySelectorAll("[data-k]").forEach(el => (p[el.dataset.k] = el.value));
+  p.floors = floors;
+  p.structure = STRUCT[structure];
+  const v = basisValues();
+  for (const k of ["total_area", "tsubo", "floor1_area", "floor2_area", "floor3_area", "roof_area", "wall_area", "scaffold_area", "toilet_count"])
+    p[k] = v[k] ?? null;
+  return p;
+}
+
+// ---- サンプル版: ブラウザ内でExcelを生成して保存する(backend/excel_export.py の移植) ----
+const XFONT = "ＭＳ 明朝";
+const xf = (size = 11, bold = false) => ({ name: XFONT, size, bold });
+const THIN = { style: "thin" }, HAIR = { style: "hair" };
+const GREY = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD9D9D9" } };
+const YELLOW = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF2CC" } };
+const LINES = [1, 2, 3, 4, 6, 7, 9, 11];
+const nq = v => (v == null || v === "" ? null : Math.round(+v * 100) / 100);
+
+async function buildXlsx({ property: p, categories: cats }) {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet("見積書", {
+    views: [{ state: "frozen", ySplit: 3 }],
+    pageSetup: { paperSize: 9, orientation: "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: "3:3" },
+  });
+  [6, 38, 34, 9, 2, 7, 14, 2, 16, 2, 28].forEach((w, i) => (ws.getColumn(i + 1).width = w));
+  const cell = (r, c) => ws.getCell(r, c);
+  const frame = (r, top, bottom) => {
+    for (let c = 1; c <= 11; c++)
+      cell(r, c).border = {
+        left: LINES.includes(c) ? THIN : undefined, right: c === 11 || [1, 2, 3, 5, 6, 8, 10].includes(c) ? THIN : undefined,
+        top: top || HAIR, bottom: bottom || HAIR,
+      };
+  };
+
+  cell(1, 2).value = `${p.customer_name || "お名前"} 様邸${p.work_title || "リノベーション工事"} 見積書`;
+  cell(1, 2).font = xf(14, true); ws.getRow(1).height = 24;
+  cell(2, 2).value = p.vendor_name ? `${p.vendor_name} 御中` : ""; cell(2, 2).font = xf();
+  ws.mergeCells(2, 7, 2, 11);
+  cell(2, 7).value = p.company_name || ""; cell(2, 7).font = xf(); cell(2, 7).alignment = { horizontal: "right" };
+
+  const hr = 3;
+  frame(hr, THIN, THIN);
+  for (let c = 1; c <= 11; c++) cell(hr, c).fill = GREY;
+  Object.entries({ 1: "No.", 2: "名　　　称", 3: "仕　　　様", 4: "数量", 6: "単位", 7: "単　価", 9: "金　額", 11: "摘　要" }).forEach(([c, t]) => {
+    cell(hr, +c).value = t; cell(hr, +c).font = xf(11, true); cell(hr, +c).alignment = { horizontal: "center", vertical: "middle" };
+  });
+  [[4, 5], [7, 8], [9, 10]].forEach(([a, b]) => ws.mergeCells(hr, a, hr, b));
+
+  let row = hr + 1;
+  cell(row++, 1).value = "（内　訳　明　細）"; cell(row - 1, 1).font = xf();
+  const summaryRows = [];
+  cats.forEach((cat, i) => {
+    cell(row, 1).value = i + 1; cell(row, 2).value = cat.name; cell(row, 4).value = 1; cell(row, 6).value = "式";
+    [1, 2, 4, 6].forEach(c => (cell(row, c).font = xf()));
+    frame(row); summaryRows.push(row); row++;
+  });
+  const adj = row + 1;
+  cell(adj, 2).value = "調整費"; cell(adj, 2).font = xf();
+  cell(adj, 9).fill = YELLOW; cell(adj, 9).numFmt = "#,##0;[Red]-#,##0"; frame(adj);
+  const total = adj + 2;
+  cell(total, 2).value = "合　計"; cell(total, 2).font = xf(11, true); frame(total, THIN, THIN);
+  row = total + 2;
+
+  const subs = [];
+  cats.forEach((cat, i) => {
+    cell(row++, 1).value = "（内　訳　明　細）"; cell(row - 1, 1).font = xf();
+    cell(row, 1).value = i + 1; cell(row, 2).value = cat.name;
+    cell(row, 1).font = xf(11, true); cell(row, 2).font = xf(11, true); frame(row); row++;
+    const first = row;
+    for (const it of cat.items) {
+      cell(row, 2).value = it.name; cell(row, 2).font = xf(11, !!it.group);
+      if (!it.group) {
+        cell(row, 3).value = it.spec || null; cell(row, 3).font = xf();
+        const q = cell(row, 4); q.value = nq(it.qty); q.font = xf(); q.numFmt = "#,##0.##"; q.alignment = { horizontal: "right" };
+        cell(row, 6).value = it.unit || null; cell(row, 6).font = xf(); cell(row, 6).alignment = { horizontal: "center" };
+        const g = cell(row, 7); g.fill = YELLOW; g.numFmt = "#,##0"; g.font = xf();
+        const a = cell(row, 9); a.value = { formula: `IF(G${row}="","",ROUND(D${row}*G${row},0))` }; a.numFmt = "#,##0"; a.font = xf();
+        cell(row, 11).value = it.note || null; cell(row, 11).font = xf(); cell(row, 11).fill = YELLOW;
+      }
+      frame(row); row++;
+    }
+    cell(row, 2).value = "小　計"; cell(row, 2).font = xf(11, true);
+    const s = cell(row, 9); s.value = { formula: `SUM(I${first}:I${row - 1})` }; s.numFmt = "#,##0"; s.font = xf(11, true);
+    frame(row, THIN, THIN); subs.push(`I${row}`); row += 2;
+  });
+
+  summaryRows.forEach((r, i) => { const c = cell(r, 9); c.value = { formula: subs[i] }; c.numFmt = "#,##0"; c.font = xf(); });
+  const t = cell(total, 9);
+  t.value = { formula: `SUM(I${summaryRows[0]}:I${summaryRows[summaryRows.length - 1]})+N(I${adj})` }; t.numFmt = "#,##0"; t.font = xf(11, true);
+
+  const ps = wb.addWorksheet("物件情報");
+  ps.getColumn(1).width = 22; ps.getColumn(2).width = 40;
+  ps.getCell(1, 1).value = "物件情報（見積条件）"; ps.getCell(1, 1).font = xf(14, true);
+  const u = (v, unit) => (v == null || v === "" ? null : `${nq(v)} ${unit}`);
+  const rows = [
+    ["お客様名", p.customer_name], ["工事名", p.work_title], ["物件所在地", p.address], ["構造", p.structure],
+    ["依頼元", p.company_name], ["提出先（業者）", p.vendor_name], ["見積提出期限", p.due_date], ["工事希望時期", p.work_period],
+    ["階数", { 1: "平屋", 2: "2階建て", 3: "3階建て" }[p.floors]],
+    ["延床面積", u(p.total_area, "㎡")], ["延床面積（坪）", u(p.tsubo, "坪")],
+    ["1階床面積", u(p.floor1_area, "㎡")], ["2階床面積", u(p.floor2_area, "㎡")], ["3階床面積", u(p.floor3_area, "㎡")],
+    ["屋根面積", u(p.roof_area, "㎡")], ["外壁面積", u(p.wall_area, "㎡")], ["足場面積", u(p.scaffold_area, "㎡")],
+    ["トイレ数", u(p.toilet_count, "ヶ所")], ["備考・特記事項", p.remarks],
+  ];
+  rows.forEach(([k, v], i) => {
+    const r = i + 3, a = ps.getCell(r, 1), b = ps.getCell(r, 2);
+    a.value = k; a.font = xf(11, true); a.fill = GREY; b.value = v || null; b.font = xf();
+    b.alignment = { wrapText: true, vertical: "top" };
+    [a, b].forEach(c => (c.border = { left: THIN, right: THIN, top: THIN, bottom: THIN }));
+  });
+  ps.getCell(rows.length + 4, 1).value = "※ 黄色のセル（単価・摘要）をご記入ください。金額・小計・合計は自動計算されます。";
+  ps.getCell(rows.length + 4, 1).font = xf();
+  return wb.xlsx.writeBuffer();
+}
+
+$("#export").addEventListener("click", async () => {
+  const cats = catalog.filter(c => selected.has(c.id));
+  if (!cats.length) return notify("出力する工事を選択してください。");
+  const body = {
+    property: propertyData(),
+    categories: cats.map(c => ({
+      name: c.name,
+      items: c.items.filter(i => i.name.trim() && visible(i)).map(i => ({
+        name: i.name, spec: i.spec || "", qty: i.group ? null : i.qty, unit: i.unit || "", note: i.note || "", group: !!i.group,
+      })),
+    })),
+  };
+  const pr = body.property, btn = $("#export");
+  btn.disabled = true; btn.textContent = "作成中…";
+  try {
+    const buf = await buildXlsx(body);
+    const filename = [pr.customer_name || "お客様", pr.work_title, "見積依頼書", pr.vendor_name].filter(Boolean).join("_") + ".xlsx";
+    // claude.ai 上の公開ページでは保存機能(downloads)を使い、通常のWebサイトでは通常のダウンロードにする
+    const downloads = window.claude && claude.use ? await claude.use("downloads").catch(() => null) : null;
+    if (downloads) await downloads.save({ filename, data: buf });
+    else {
+      const a = Object.assign(document.createElement("a"), {
+        href: URL.createObjectURL(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })), download: filename,
+      });
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
+    notify("Excelを出力しました。");
+  } catch (err) {
+    if (err && err.code === "declined") notify("保存をキャンセルしました。");
+    else notify("出力に失敗しました: " + (err && err.message ? err.message : err));
+  } finally { btn.disabled = false; btn.textContent = "Excelを出力"; }
+});
+
+function notify(msg) {
+  const s = $("#status"); s.textContent = msg;
+  setTimeout(() => renderDetail(), 3500);
+}
+
+// ---- 起動 ----
+(async () => {
+  const cat = CATALOG;
+  catalog = cat.categories; presets = cat.presets || [];
+  catalog.forEach(c => selected.add(c.id));
+  renderCats(); renderDetail();
+})();
+
+
+// 例として入れておく数値(サンプル)
+for (const [k, v] of Object.entries({ floor1_area: 63.6, floor2_area: 33, roof_area: 83, wall_area: 123.3, scaffold_area: 360, toilet_count: 2, cloth_len: 670 })) {
+  const el = document.querySelector(`[data-n=${k}]`);
+  if (el) { el.value = v; el.dispatchEvent(new Event("input", { bubbles: true })); }
+}
+
+</script>

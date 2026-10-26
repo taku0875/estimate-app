@@ -1,0 +1,15 @@
+# Render の Blueprint 用。リポジトリのルートに置いて「New > Blueprint」から読み込む。
+services:
+  - type: web
+    name: estimate-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SERVE_FRONTEND
+        value: "0"
+      - key: ENABLE_CATALOG_WRITE
+        value: "0"
+      - key: ALLOWED_ORIGINS
+        value: https://フロントのURL.netlify.app   # フロントの公開URLに書き換える
