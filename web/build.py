@@ -14,16 +14,20 @@ html = (ROOT / "frontend" / "index.html").read_text(encoding="utf-8")
 css = (ROOT / "frontend" / "style.css").read_text(encoding="utf-8")
 js = (ROOT / "frontend" / "app.js").read_text(encoding="utf-8")
 
-# 1) カタログは埋め込み
-# (サーバーから読み込む部分を、埋め込んだ CATALOG に差し替える)
-start = js.index("  let cat;\n  try {")
-end = js.index("    return;\n  }\n", start) + len("    return;\n  }\n")
-js = js[:start] + "  const cat = CATALOG;\n" + js[end:]
 
-# 2) 出力・ひな形保存のハンドラをサンプル用に置換
-start = js.index('$("#export").addEventListener')
-end = js.index("// ---- 起動")
-js = js[:start] + (HERE / "export_xlsx.js").read_text(encoding="utf-8") + "\n" + js[end:]
+def replace_between(text, start_marker, end_marker, new, include_end=False):
+    """text の start_marker から end_marker の手前(include_end=True なら末尾まで)を new に置き換える。"""
+    start = text.index(start_marker)
+    end = text.index(end_marker, start) + (len(end_marker) if include_end else 0)
+    return text[:start] + new + text[end:]
+
+
+# 1) カタログはサーバーから読まず、ページに埋め込んだ CATALOG を使う
+js = replace_between(js, "  let cat;\n  try {", "    return;\n  }\n", "  const cat = CATALOG;\n", include_end=True)
+
+# 2) 「Excelを出力」「ひな形として保存」(サーバー版)を、ブラウザ内で Excel を作る版に置き換える
+js = replace_between(js, "// ---- Excelを出力・ひな形として保存(サーバー版)", "// ---- 起動",
+                     (HERE / "export_xlsx.js").read_text(encoding="utf-8") + "\n")
 
 body = re.search(r"<body>(.*)</body>", html, re.S).group(1)
 body = re.sub(r'<script src="(app|config).js"></script>\s*', "", body)
