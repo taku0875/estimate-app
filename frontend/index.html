@@ -3,17 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>見積依頼書ジェネレーター</title>
+<title>TSUMIKI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Orbitron:wght@700;800&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="app">
 
   <aside class="side">
-    <div class="brand"><span class="logo" aria-hidden="true"></span><div><b>見積依頼書</b><small>ジェネレーター</small></div></div>
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#3b4533"/><rect x="5" y="17" width="10" height="10" rx="2" fill="#a9d46a"/><rect x="17" y="17" width="10" height="10" rx="2" fill="#a9d46a"/><rect x="11" y="5" width="10" height="10" rx="2" fill="#a9d46a"/></svg>
+      <div><b>TSUMIKI</b><small>ESTIMATE BUILDER</small></div>
+    </div>
     <nav id="nav">
       <a href="#property" class="on"><i>1</i><span>物件情報<small id="navP"></small></span></a>
       <a href="#works"><i>2</i><span>工事の選択<small id="navW"></small></span></a>
@@ -27,7 +30,7 @@
       <div class="crumb"><span>見積依頼</span><span class="sep">/</span><b id="topTitle">新規の見積依頼</b></div>
       <div class="chips" id="topChips"></div>
     </header>
-    <p class="banner" id="sampleNote" hidden>サンプル版です。入力内容は保存されません。床面積などは例として入っています。</p>
+    <p class="banner" id="sampleNote" hidden>サンプル版です。入力内容は保存されません。</p>
 
     <main>
       <section class="card" id="property">
@@ -60,31 +63,34 @@
             </div>
           </div>
         </div>
-        <p class="hint">構造と階数で、入力欄と工事内訳が絞り込まれます。</p>
+        <p class="hint">構造と階数に合わせて、工事内訳が絞り込まれます。数量は、内訳の表で直接入力します。</p>
 
-        <h3>数量の元になる数値 <small>入力すると、該当する項目の数量が自動で入ります</small></h3>
-        <div class="grid nums">
-          <label data-floor="1">1階床面積<span class="unit"><input type="number" step="0.01" data-n="floor1_area"><em>㎡</em></span></label>
-          <label data-floor="2">2階床面積<span class="unit"><input type="number" step="0.01" data-n="floor2_area"><em>㎡</em></span></label>
-          <label data-floor="3">3階床面積<span class="unit"><input type="number" step="0.01" data-n="floor3_area"><em>㎡</em></span></label>
-          <label data-need="roof_area">屋根面積<span class="unit"><input type="number" step="0.01" data-n="roof_area"><em>㎡</em></span></label>
-          <label data-need="wall_area">外壁面積<span class="unit"><input type="number" step="0.01" data-n="wall_area"><em>㎡</em></span></label>
-          <label data-need="scaffold_area">足場面積<span class="unit"><input type="number" step="0.01" data-n="scaffold_area" placeholder="空欄なら外壁面積"><em>㎡</em></span></label>
-          <label data-need="toilet_count">トイレ数<span class="unit"><input type="number" step="1" data-n="toilet_count"><em>ヶ所</em></span></label>
-          <label data-need="cloth_len">クロス貼り延長<span class="unit"><input type="number" step="0.1" data-n="cloth_len"><em>m</em></span></label>
-        </div>
-        <p class="calc" id="calc"></p>
         <label class="wide block">備考・特記事項（業者への伝達事項）<textarea data-k="remarks" rows="3" placeholder="搬入経路、工事時間の制限、既存設備の状況など"></textarea></label>
       </section>
 
       <section class="card" id="works">
         <div class="card-h"><h2>工事の選択</h2><span>タイプで初期選択し、カードで微調整できます</span></div>
+        <h3 class="lbl">工事タイプ</h3>
         <div class="seg types" id="types"></div>
+
+        <div class="fmt">
+          <div class="plumb-h"><b>Excelの形式</b><span>工事タイプを選ぶと自動で切り替わります。ここで変えることもできます</span></div>
+          <div class="seg" id="formats"></div>
+        </div>
+
+        <div class="plumb" id="plumbing" hidden>
+          <div class="plumb-h"><b>水回りの範囲</b><span>選んだ設備の工事だけが、内訳に出ます</span></div>
+          <h4 class="sub">よく使う組み合わせ</h4>
+          <div class="seg" id="patterns"></div>
+          <h4 class="sub">設備を個別に選ぶ</h4>
+          <div class="fx" id="fixtures"></div>
+        </div>
+
         <div id="cats" class="cats"></div>
       </section>
 
       <section class="card" id="detail">
-        <div class="card-h"><h2>内訳の確認</h2><span>数量・仕様・単位は直接編集できます。単価はExcelで業者が入力します</span></div>
+        <div class="card-h"><h2>内訳の確認</h2><span>数量・仕様・単位は直接入力できます。単価はExcelで業者が入力します</span></div>
         <div id="detailBody"></div>
       </section>
     </main>
@@ -95,10 +101,10 @@
       <h4>出力の内容</h4>
       <dl>
         <div><dt>構造・階数</dt><dd id="sStruct">—</dd></div>
-        <div><dt>延床面積</dt><dd id="sArea">—</dd></div>
+        <div><dt>水回り</dt><dd id="sPlumb">—</dd></div>
         <div><dt>工事</dt><dd id="sWorks">—</dd></div>
         <div><dt>内訳項目</dt><dd id="sItems">—</dd></div>
-        <div><dt>数量の要確認</dt><dd id="sTodo">—</dd></div>
+        <div><dt>数量が未入力</dt><dd id="sTodo">—</dd></div>
       </dl>
     </div>
     <div class="sum-actions">

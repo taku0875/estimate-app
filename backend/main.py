@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Request
@@ -34,7 +34,7 @@ def catalog_write_enabled() -> bool:
     return _flag("ENABLE_CATALOG_WRITE", "0")
 
 
-app = FastAPI(title="見積依頼書ジェネレーター", docs_url="/docs" if ENABLE_DOCS else None,
+app = FastAPI(title="TSUMIKI", docs_url="/docs" if ENABLE_DOCS else None,
               redoc_url=None, openapi_url="/openapi.json" if ENABLE_DOCS else None)
 app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_methods=["GET", "POST", "PUT"],
                    allow_headers=["Content-Type"], expose_headers=["Content-Disposition"])
@@ -86,17 +86,10 @@ class Property(BaseModel):
     vendor_name: ShortText = ""
     due_date: Annotated[str, Field(max_length=20)] = ""
     work_period: ShortText = ""
-    total_area: Amount = None
-    tsubo: Amount = None
-    floor1_area: Amount = None
-    floor2_area: Amount = None
-    floor3_area: Amount = None
     floors: Annotated[int, Field(ge=1, le=3)] = 2
-    roof_area: Amount = None
-    wall_area: Amount = None
-    scaffold_area: Amount = None
-    toilet_count: Amount = None
+    plumbing: ShortText = ""  # 水回りの範囲(例: キッチン＋トイレ)
     remarks: LongText = ""
+    format: Literal["renovation", "mizumawari"] = "renovation"  # Excelの形(見本のExcelに合わせた2種類)
 
 
 class ExportRequest(BaseModel):
@@ -111,6 +104,7 @@ class CatalogItem(Item):
     factor: Annotated[float, Field(ge=0, le=1000)] | None = None              # 数量 = basis × factor
     minFloors: Annotated[int, Field(ge=1, le=3)] | None = None                 # この階数以上で表示
     structures: Annotated[list[str], Field(max_length=3)] | None = None        # 対象の構造(wood/steel/rc)
+    fixtures: Annotated[list[Annotated[str, Field(pattern=r"^[a-z0-9_]{1,40}$")]], Field(max_length=10)] | None = None  # 水回りの設備(kitchen 等)
 
 
 class CatalogCategory(BaseModel):
@@ -122,16 +116,38 @@ class CatalogCategory(BaseModel):
 
 
 class Preset(BaseModel):
-    """工事タイプ(フルリノベーション等)。ids は選択する大項目の id。"""
+    """工事タイプ(工事・内装・外装)。ids は選択する大項目の id。"""
     model_config = ConfigDict(extra="forbid")
     name: Annotated[str, Field(max_length=100)]
     ids: list[int] = Field(max_length=MAX_CATEGORIES)
+    format: Literal["renovation", "mizumawari"] | None = None  # このタイプを選んだときのExcelの形
+
+
+class Fixture(BaseModel):
+    """水回りの設備(キッチン、風呂＆洗面器、トイレ)。key は項目の fixtures で参照する。"""
+    model_config = ConfigDict(extra="forbid")
+    key: Annotated[str, Field(pattern=r"^[a-z0-9_]{1,40}$")]
+    name: Annotated[str, Field(max_length=100)]
+
+
+class PlumbingPattern(BaseModel):
+    """水回りのよく使う組み合わせ(例: キッチン＋トイレ)。"""
+    model_config = ConfigDict(extra="forbid")
+    name: Annotated[str, Field(max_length=100)]
+    fixtures: list[Annotated[str, Field(pattern=r"^[a-z0-9_]{1,40}$")]] = Field(max_length=10)
+
+
+class Plumbing(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    fixtures: list[Fixture] = Field(max_length=10)
+    patterns: list[PlumbingPattern] = Field(max_length=20)
 
 
 class Catalog(BaseModel):
     model_config = ConfigDict(extra="forbid")
     categories: list[CatalogCategory] = Field(min_length=1, max_length=MAX_CATEGORIES)
     presets: list[Preset] = Field(default=[], max_length=50)
+    plumbing: Plumbing | None = None
 
 
 # ---------------------------------------------------------------- API

@@ -3,7 +3,7 @@
 「入力」シートに物件情報を入れ、工事タイプ・階数・構造を選ぶだけで、
 「見積書」シートの内訳が数式で自動的に組み上がる。単価は業者が「見積書」の黄色欄に入力する。
 
-実行: python excel/build_excel.py  ->  excel/見積依頼書ジェネレーター.xlsx
+実行: python excel/build_excel.py  ->  excel/TSUMIKI.xlsx
 """
 import json
 from pathlib import Path
@@ -150,7 +150,7 @@ for col, w in zip("ABCD", [30, 30, 22, 62]):
     I.column_dimensions[col].width = w
 F_BAND = PatternFill("solid", fgColor=GREEN)
 BOX = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
-I["A1"] = "見積依頼書ジェネレーター"; I["A1"].font = font(size=20, bold=True, color="123524")
+I["A1"] = "TSUMIKI　見積依頼書"; I["A1"].font = font(size=20, bold=True, color="123524")
 I["A2"] = "STEP 1 → 5 の順に、黄色のセルへ入力・選択してください。（入力済みの内容は例です。上書きしてください）"
 I["A2"].font = font(size=11, color="66786D")
 
@@ -368,7 +368,7 @@ O.sheet_properties.tabColor = "C2410C"
 H = ws_help
 H.sheet_view.showGridLines = False
 H.column_dimensions["A"].width = 6; H.column_dimensions["B"].width = 34; H.column_dimensions["C"].width = 80
-H["A1"] = "見積依頼書ジェネレーター（Excel版）"; H["A1"].font = font(size=20, bold=True, color="123524")
+H["A1"] = "TSUMIKI（Excel版）"; H["A1"].font = font(size=20, bold=True, color="123524")
 H["A2"] = "物件の情報を入れると、業者に渡す見積依頼書（単価欄は空欄）が自動でできあがります。マクロは使っていません。"
 H["A2"].font = font(size=11, color="66786D")
 for c, t in zip("ABC", ["", "やること", "内容"]):
@@ -415,6 +415,6 @@ ws_s.sheet_state = "hidden"
 
 
 wb.active = 0
-out = HERE / "見積依頼書ジェネレーター.xlsx"
+out = HERE / "TSUMIKI.xlsx"
 wb.save(out)
 print("saved", out, "master rows", len(rows), "detail rows", DN)

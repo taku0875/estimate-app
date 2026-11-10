@@ -3,151 +3,162 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>見積依頼書ジェネレーター</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<title>TSUMIKI</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap">
 <style>
-/* レイアウト: 左ナビ + 中央の作業エリア + 右の出力サマリ（施工管理系アプリの構成） */
+/* TSUMIKI: 黄緑・白・黒。左ナビ + 中央の作業エリア + 右の出力サマリ */
 :root{
-  --bg:#f2f5f3;--card:#fff;--line:#e2e8e4;--line2:#cfd9d3;--ink:#17261e;--sub:#66786d;
-  --nav:#123524;--nav2:#1b4a33;--navink:#cfe3d6;
-  --g50:#eef7f1;--g100:#d8eee1;--g200:#aedcc0;--g500:#1f9d55;--g600:#17844a;--g700:#106b3b;--g900:#0c3b25;
-  --amber:#b7791f;--amber-bg:#fff4d6;--amber-line:#f0d98a;
-  --r:12px;--shadow:0 1px 2px rgba(16,60,36,.05),0 6px 18px -10px rgba(16,60,36,.14);
+  --paper:#fbfcf7;--bg:#eef1e6;--card:var(--paper);--line:#dfe4d3;--line2:#c8d0b8;--ink:#2b3325;--sub:#657060;
+  --black:#3b4533;--black2:#3b4533;--navink:#c9ccc2;
+  --lime:#a9d46a;--lime-hi:#c5e48f;--lime-deep:#7fae3a;--lime-100:#eef7d9;--lime-50:#f6fbea;--lime-ink:#4a6a1c;--side:#dbe9bb;
+  --amber-bg:#fff3cd;--amber-line:#efd27a;--amber:#8a5a00;
+  --r:14px;--shadow:0 1px 2px rgba(43,51,37,.04),0 8px 20px -14px rgba(43,51,37,.14);
   color-scheme:light;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:76px}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 "Noto Sans JP","Yu Gothic UI","Meiryo",sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.7 "Noto Sans JP","Yu Gothic UI","Meiryo",sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
 [hidden]{display:none!important}
 
 .app{display:grid;grid-template-columns:232px minmax(0,1fr) 272px;min-height:100vh}
 
 /* ---- 左ナビ ---- */
-.side{background:var(--nav);color:var(--navink);padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:26px}
-.brand{display:flex;align-items:center;gap:10px;padding:0 8px}
-.brand b{display:block;color:#fff;font-size:15px;line-height:1.2}
-.brand small{color:#8fb59f;font-size:11px}
-.logo{width:32px;height:32px;border-radius:9px;background:var(--g500);position:relative;flex:none}
-.logo::before{content:"";position:absolute;left:7px;right:7px;bottom:8px;height:3px;background:#fff;border-radius:2px}
-.logo::after{content:"";position:absolute;left:7px;top:8px;width:18px;height:11px;border:3px solid #fff;border-bottom:0;border-radius:2px 2px 0 0}
+.side{background:var(--side);color:#14200a;padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:28px}
+.brand{display:flex;align-items:center;gap:11px;padding:0 8px}
+.logo{width:34px;height:34px;flex:none}
+.brand b{display:block;color:var(--black);font-family:'Orbitron','Share Tech Mono',monospace;text-transform:uppercase;font-size:19px;font-weight:800;line-height:1.1;letter-spacing:.08em}
+.brand small{color:#1f3308;font-size:10px;font-weight:700;letter-spacing:.28em}
 #nav{display:flex;flex-direction:column;gap:4px}
-#nav a{display:flex;align-items:center;gap:12px;padding:10px 10px;border-radius:10px;color:var(--navink);text-decoration:none;transition:background .15s}
-#nav a:hover{background:var(--nav2)}
-#nav a.on{background:var(--nav2);color:#fff}
-#nav i{width:24px;height:24px;border-radius:50%;border:1.5px solid #4c7b62;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;flex:none}
-#nav a.on i{background:var(--g500);border-color:var(--g500);color:#fff}
+#nav a{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;color:#14200a;text-decoration:none;transition:background .15s}
+#nav a:hover{background:rgba(59,69,51,.08)}
+#nav a.on{background:var(--black2);color:#fff}
+#nav i{width:24px;height:24px;border-radius:50%;border:1.5px solid rgba(59,69,51,.55);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;flex:none}
+#nav a.on i{background:var(--lime);border-color:var(--lime);color:var(--black)}
+#nav a.on small{color:#c5e48f}
 #nav span{display:flex;flex-direction:column;line-height:1.3;font-weight:500}
-#nav small{font-size:11px;color:#8fb59f;font-weight:400;min-height:14px}
-.sidenote{margin:auto 8px 0;font-size:11px;line-height:1.7;color:#8fb59f;border-top:1px solid #285640;padding-top:14px}
+#nav small{font-size:11px;color:#2c4710;font-weight:400;min-height:14px}
+.sidenote{margin:auto 8px 0;font-size:11px;line-height:1.7;color:#1f3308;border-top:1px solid rgba(59,69,51,.25);padding-top:14px}
 
 /* ---- 上部バー ---- */
 .content{min-width:0}
-.top{position:sticky;top:0;z-index:5;background:rgba(242,245,243,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.top{position:sticky;top:0;z-index:5;background:rgba(251,252,247,.94);backdrop-filter:blur(8px);border-bottom:2px solid #d9f99d;padding:14px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .crumb{display:flex;gap:8px;align-items:baseline;min-width:0}
-.crumb span{color:var(--sub);font-size:12px}.crumb .sep{color:var(--line2)}
+.crumb span{color:#3f5a14;font-size:12px}.crumb .sep{color:#8fb84a}
 .crumb b{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
-.chip{font-size:12px;font-weight:500;padding:2px 10px;border-radius:99px;background:var(--g50);color:var(--g700);border:1px solid var(--g100)}
-.chip.vendor{background:#fff;color:var(--ink);border-color:var(--line2)}
-.banner{margin:14px 28px 0;padding:8px 14px;background:var(--amber-bg);border:1px solid var(--amber-line);color:#6b4a0f;border-radius:10px;font-size:13px}
+.chip{font-size:12px;font-weight:700;padding:2px 11px;border-radius:99px;background:var(--lime);color:var(--black)}
+.chip.vendor{background:var(--paper);color:var(--ink);border:1px solid var(--line2);font-weight:500}
+.banner{margin:14px 28px 0;padding:8px 14px;background:var(--lime-100);border:1px solid #d3ec9a;color:var(--lime-ink);border-radius:10px;font-size:13px;font-weight:500}
 main{padding:20px 28px 56px;display:grid;gap:18px}
 
 /* ---- カード ---- */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 24px 24px;box-shadow:var(--shadow);min-width:0}
-.card-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
-h2{margin:0;font-size:16px;font-weight:700;color:var(--g900)}
-.card-h span{color:var(--sub);font-size:12px}
-h3{margin:22px 0 8px;font-size:13px;font-weight:700;color:var(--g700)}
+.card-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:-20px -24px 20px;padding:14px 24px;background:linear-gradient(90deg,var(--lime-100),var(--lime-50) 70%,#fff);border-bottom:1px solid var(--lime-100);border-radius:var(--r) var(--r) 0 0}
+main{counter-reset:sec}
+h2{margin:0;font-size:17px;font-weight:900;display:flex;align-items:center;gap:10px}
+h2::before{counter-increment:sec;content:counter(sec);width:26px;height:26px;border-radius:50%;background:var(--black);color:var(--lime-hi);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.card-h span{color:var(--lime-ink);font-size:12px}
+h3{margin:22px 0 8px;font-size:13px;font-weight:700}
 h3 small{color:var(--sub);font-weight:400;font-size:12px;margin-left:6px}
-.hint{margin:8px 0 0;color:var(--sub);font-size:12px}
+.hint{margin:10px 0 0;color:var(--sub);font-size:12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px 16px}
 .wide{grid-column:1/-1}.block{display:flex;margin-top:18px}
 .split{display:flex;gap:36px;flex-wrap:wrap;margin-top:6px}
 label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:500;color:var(--sub);min-width:0}
-input,textarea{font:inherit;font-weight:400;color:var(--ink);padding:8px 11px;border:1px solid var(--line2);border-radius:8px;background:#fff;width:100%;transition:border-color .15s,box-shadow .15s}
-input:hover,textarea:hover{border-color:#9db8a8}
-input:focus-visible,textarea:focus-visible,button:focus-visible{outline:0;border-color:var(--g500);box-shadow:0 0 0 3px var(--g100)}
-.unit{display:flex;align-items:center;position:relative}
-.unit input{padding-right:40px;text-align:right}
-.unit em{position:absolute;right:11px;font-style:normal;font-size:12px;color:var(--sub);pointer-events:none}
-.calc{margin:14px 0 0;display:inline-block;color:var(--g700);font-weight:700;font-size:13px;background:var(--g50);border:1px solid var(--g100);border-radius:8px;padding:3px 12px}
-.calc:empty{display:none}
+input,textarea{font:inherit;font-weight:400;color:var(--ink);padding:8px 11px;border:1px solid var(--line2);border-radius:8px;background:var(--paper);width:100%;transition:border-color .15s,box-shadow .15s}
+input:hover,textarea:hover{border-color:#9ca391}
+input:focus-visible,textarea:focus-visible,button:focus-visible{outline:0;border-color:var(--black);box-shadow:0 0 0 3px rgba(169,212,106,.5)}
 
-/* ---- セグメント ---- */
-.seg{display:inline-flex;background:#eaf0ec;border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
-.seg label{flex-direction:row;position:relative;cursor:pointer;padding:6px 18px;border-radius:8px;color:var(--sub);font-size:13px;font-weight:500;transition:all .15s}
+/* ---- セグメント(トグル) ---- */
+.seg{display:inline-flex;gap:8px;flex-wrap:wrap}
+.seg label,.seg button{flex-direction:row;align-items:center;position:relative;cursor:pointer;padding:8px 18px;border:1.5px solid var(--line2);border-radius:99px;background:var(--paper);color:var(--ink);font-size:13px;font-weight:500;transition:all .15s}
 .seg input{position:absolute;opacity:0;width:0;height:0}
-.seg label:hover,.seg button:hover{color:var(--g900)}
-.seg label:has(input:checked),.seg button.on{background:#fff;color:var(--g700);font-weight:700;box-shadow:0 1px 3px rgba(16,60,36,.18)}
-.seg label:has(input:focus-visible){box-shadow:0 0 0 3px var(--g100)}
-.seg button{border:0;background:transparent;color:var(--sub);padding:6px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.seg label:hover,.seg button:hover{border-color:var(--lime-deep);background:var(--lime-50)}
+.seg label:has(input:checked),.seg button.on{background:var(--lime-100);border-color:var(--lime-deep);color:var(--ink);font-weight:700}
+.seg label:has(input:checked)::before,.seg button.on::before{content:"✓";margin-right:6px;color:var(--lime-deep);font-weight:900}
+.seg label:has(input:focus-visible){box-shadow:0 0 0 3px rgba(169,212,106,.6)}
 .seg.types{margin-bottom:16px}
+
+/* ---- 水回りの範囲 ---- */
+.lbl{margin:0 0 10px;font-size:13px;font-weight:700}
+.fmt{border:1.5px solid var(--lime-hi);border-radius:12px;padding:14px 16px 16px;margin:0 0 16px;background:var(--lime-50);display:grid;gap:12px}
+.sub{margin:2px 0 -4px;font-size:12px;font-weight:700;color:var(--lime-ink)}
+.plumb{border:1.5px solid var(--lime-hi);border-radius:12px;padding:14px 16px 16px;margin-bottom:16px;background:var(--lime-50);display:grid;gap:12px}
+.plumb-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.plumb-h b{font-size:14px;font-weight:900}
+.plumb-h span{color:var(--sub);font-size:12px}
+.fx{display:flex;gap:8px;flex-wrap:wrap}
+.fx label{flex-direction:row;align-items:center;gap:8px;padding:7px 14px 7px 10px;border:1.5px solid var(--line2);border-radius:99px;background:var(--paper);color:var(--ink);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.fx label:hover{border-color:var(--lime-deep)}
+.fx input{width:18px;height:18px;padding:0;accent-color:var(--lime-deep);flex:none}
+.fx label:has(input:checked){background:var(--lime-100);border-color:var(--lime-deep);color:var(--ink);font-weight:700}
+.fx label:has(input:focus-visible){box-shadow:0 0 0 3px rgba(169,212,106,.6)}
 
 /* ---- 工事カード ---- */
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:10px}
-.cat{flex-direction:column;align-items:flex-start;gap:10px;padding:14px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;color:var(--ink);font-size:14px;font-weight:700;background:#fff;transition:all .15s;position:relative}
-.cat:hover{border-color:var(--g200);box-shadow:var(--shadow)}
+.cat{flex-direction:column;align-items:flex-start;gap:10px;padding:14px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;color:var(--ink);font-size:14px;font-weight:700;background:var(--paper);transition:all .15s;position:relative}
+.cat:hover{border-color:var(--line2);box-shadow:var(--shadow)}
 .cat input{position:absolute;opacity:0;width:0;height:0}
-.cat .ico{width:36px;height:36px;border-radius:10px;background:#eef2f0;color:var(--sub);display:grid;place-items:center;transition:all .15s}
+.cat .ico{width:36px;height:36px;border-radius:10px;background:#eef0e9;color:var(--sub);display:grid;place-items:center;transition:all .15s}
 .cat .ico svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .cat small{font-weight:400;color:var(--sub);font-size:12px;margin-top:-6px}
-.cat::after{content:"";position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line2);background:#fff center/12px no-repeat}
-.cat.on{border-color:var(--g500);background:var(--g50)}
-.cat.on .ico{background:var(--g500);color:#fff}
-.cat.on::after{border-color:var(--g500);background-color:var(--g500);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.4 2.4 4.6-5' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-.cat:has(input:focus-visible){box-shadow:0 0 0 3px var(--g100)}
+.cat::after{content:"";position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line2);background:var(--paper) center/12px no-repeat}
+.cat.on{border-color:var(--lime-deep);background:var(--lime-50)}
+.cat.on .ico{background:var(--lime);color:var(--black)}
+.cat.on::after{border-color:var(--black);background-color:var(--black);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.4 2.4 4.6-5' fill='none' stroke='%23a9d46a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.cat:has(input:focus-visible){box-shadow:0 0 0 3px rgba(169,212,106,.6)}
 
 /* ---- 内訳テーブル ---- */
-details{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:#fff;overflow:hidden}
-summary{cursor:pointer;padding:11px 16px;font-weight:700;color:var(--g900);background:#f7faf8;list-style:none;display:flex;align-items:center;gap:10px}
+details{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:var(--paper);overflow:hidden}
+summary{cursor:pointer;padding:11px 16px;font-weight:700;background:#fafaf7;list-style:none;display:flex;align-items:center;gap:10px}
 summary::-webkit-details-marker{display:none}
-summary::before{content:"";width:7px;height:7px;border-right:2px solid var(--g600);border-bottom:2px solid var(--g600);transform:rotate(-45deg);transition:transform .15s;margin:0 4px 0 2px}
+summary::before{content:"";width:7px;height:7px;border-right:2px solid var(--black);border-bottom:2px solid var(--black);transform:rotate(-45deg);transition:transform .15s;margin:0 4px 0 2px}
 details[open]>summary::before{transform:rotate(45deg)}
 details[open]>summary{border-bottom:1px solid var(--line)}
-summary .no{font-size:12px;font-weight:700;color:#fff;background:var(--g600);border-radius:6px;padding:0 7px}
+summary .no{font-size:12px;font-weight:700;color:var(--black);background:var(--lime);border-radius:6px;padding:0 7px}
 summary small{margin-left:auto;font-weight:500;color:var(--sub);font-size:12px}
 .tbl{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:640px}
 th,td{border-top:1px solid var(--line);padding:3px 6px;text-align:left}
 thead th{border-top:0}
-th{font-size:11px;color:var(--sub);background:#fbfcfb;font-weight:500;padding:7px 8px;letter-spacing:.04em}
-tbody tr:hover td{background:#fafcfb}
+th{font-size:11px;color:var(--sub);background:#fbfbf8;font-weight:500;padding:7px 8px;letter-spacing:.04em}
+tbody tr:hover td{background:#fbfbf8}
 td input{padding:5px 8px;border-color:transparent;background:transparent}
-td input:hover{border-color:var(--line2);background:#fff}
-td input:focus-visible{background:#fff}
+td input:hover{border-color:var(--line2);background:var(--paper)}
+td input:focus-visible{background:var(--paper)}
 td.q{width:104px}td.q input{text-align:right}td.u{width:76px}td.ac{width:84px;white-space:nowrap;text-align:right}
-tr.group td{background:var(--g50)}
-tr.group:hover td{background:var(--g50)}
-tr.group td input[data-f=name]{font-weight:700;color:var(--g700)}
+tr.group td{background:var(--lime-50)}
+tr.group:hover td{background:var(--lime-50)}
+tr.group td input[data-f=name]{font-weight:700}
 tr.todo td.q input{background:var(--amber-bg);border-color:var(--amber-line)}
-.mini{border:1px solid var(--line);background:#fff;border-radius:7px;cursor:pointer;padding:2px 8px;font-size:12px;color:var(--sub);transition:all .15s}
-.mini:hover{background:var(--g50);border-color:var(--g500);color:var(--g700)}
-.tools{padding:10px 14px;display:flex;gap:8px;border-top:1px solid var(--line);background:#fbfcfb}
-.tools .mini{padding:4px 12px;color:var(--g700);border-style:dashed;border-color:var(--g200)}
+.mini{border:1px solid var(--line);background:var(--paper);border-radius:7px;cursor:pointer;padding:2px 8px;font-size:12px;color:var(--sub);transition:all .15s}
+.mini:hover{background:var(--black);border-color:var(--black);color:#fff}
+.tools{padding:10px 14px;display:flex;gap:8px;border-top:1px solid var(--line);background:#fbfbf8;flex-wrap:wrap}
+.tools .mini{padding:4px 12px;color:var(--ink);border-style:dashed;border-color:var(--line2)}
 .empty{color:var(--sub);text-align:center;padding:28px 0;border:1.5px dashed var(--line2);border-radius:10px}
 
 /* ---- 右サマリ ---- */
 .summary{position:sticky;top:0;height:100vh;padding:20px 18px 20px 4px;display:flex;flex-direction:column;gap:14px}
-.sum-body{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}
-.sum-body h4{margin:0 0 8px;font-size:12px;color:var(--sub);font-weight:500;letter-spacing:.06em}
-dl{margin:0}dl>div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.sum-body{background:var(--black);color:#fff;border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}
+.sum-body h4{margin:0 0 8px;font-size:11px;color:var(--lime);font-weight:700;letter-spacing:.2em}
+dl{margin:0}dl>div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #2b2e27}
 dl>div:first-child{border-top:0}
-dt{color:var(--sub);font-size:12px}dd{margin:0;font-weight:700;text-align:right}
-dd.warn{color:var(--amber)}
+dt{color:#9aa08f;font-size:12px}dd{margin:0;font-weight:700;text-align:right}
+dd.warn{color:#ffd166}dd.ok{color:var(--lime-hi)}
 .sum-actions{display:flex;flex-direction:column;gap:8px}
-#status{color:var(--g700);font-size:12px;min-height:18px}
+#status{color:#3f5a14;font-size:12px;min-height:18px}
 button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transition:all .15s}
-.primary{background:var(--g600);color:#fff;border:0;font-weight:700;box-shadow:0 6px 14px -8px rgba(16,108,58,.8)}
-.primary:hover{background:var(--g700)}
+.primary{background:var(--black);color:#fff;border:0;font-weight:900;box-shadow:0 8px 16px -10px rgba(59,69,51,.7)}
+.primary:hover{background:#4d5a42}
 .primary:disabled{opacity:.6}
-.ghost{background:#fff;border:1px solid var(--line2);color:var(--g700);font-weight:500}
-.ghost:hover{background:var(--g50);border-color:var(--g500)}
+.ghost{background:var(--paper);border:1.5px solid var(--black);color:var(--black);font-weight:700}
+.ghost:hover{background:var(--black);color:#fff}
 
 /* ---- 狭い画面 ---- */
 @media (max-width:1180px){
   .app{grid-template-columns:200px minmax(0,1fr)}
-  .summary{position:fixed;left:0;right:0;bottom:0;top:auto;height:auto;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);flex-direction:row;align-items:center;z-index:9}
   .side{padding-bottom:84px}
+  .summary{position:fixed;left:0;right:0;bottom:0;top:auto;height:auto;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(246,251,234,.97);backdrop-filter:blur(10px);border-top:2px solid var(--lime-hi);flex-direction:row;align-items:center;z-index:9}
   .sum-body{display:none}
   .sum-actions{flex-direction:row;align-items:center;width:100%}
   #status{margin-right:auto}
@@ -163,9 +174,11 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
   .top{padding:12px 16px;top:0}
   main{padding:16px 16px 96px}
   .banner{margin:12px 16px 0}
-  .card{padding:16px}
+  .card{padding:16px}.card-h{margin:-16px -16px 16px;padding:12px 16px}
   .chips{margin-left:0}
   .ghost{display:none}
+  .seg.types,.plumb .seg{display:flex}
+  .seg button{flex:1 1 auto;padding:7px 10px;justify-content:center}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
 
@@ -182,7 +195,10 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
 <div class="app">
 
   <aside class="side">
-    <div class="brand"><span class="logo" aria-hidden="true"></span><div><b>見積依頼書</b><small>ジェネレーター</small></div></div>
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#3b4533"/><rect x="5" y="17" width="10" height="10" rx="2" fill="#a9d46a"/><rect x="17" y="17" width="10" height="10" rx="2" fill="#a9d46a"/><rect x="11" y="5" width="10" height="10" rx="2" fill="#a9d46a"/></svg>
+      <div><b>TSUMIKI</b><small>ESTIMATE BUILDER</small></div>
+    </div>
     <nav id="nav">
       <a href="#property" class="on"><i>1</i><span>物件情報<small id="navP"></small></span></a>
       <a href="#works"><i>2</i><span>工事の選択<small id="navW"></small></span></a>
@@ -196,7 +212,7 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
       <div class="crumb"><span>見積依頼</span><span class="sep">/</span><b id="topTitle">新規の見積依頼</b></div>
       <div class="chips" id="topChips"></div>
     </header>
-    <p class="banner" id="sampleNote">サンプル版です。入力内容は保存されません。床面積などは例として入っています。</p>
+    <p class="banner" id="sampleNote">サンプル版です。入力内容は保存されません。</p>
 
     <main>
       <section class="card" id="property">
@@ -229,31 +245,34 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
             </div>
           </div>
         </div>
-        <p class="hint">構造と階数で、入力欄と工事内訳が絞り込まれます。</p>
+        <p class="hint">構造と階数に合わせて、工事内訳が絞り込まれます。数量は、内訳の表で直接入力します。</p>
 
-        <h3>数量の元になる数値 <small>入力すると、該当する項目の数量が自動で入ります</small></h3>
-        <div class="grid nums">
-          <label data-floor="1">1階床面積<span class="unit"><input type="number" step="0.01" data-n="floor1_area"><em>㎡</em></span></label>
-          <label data-floor="2">2階床面積<span class="unit"><input type="number" step="0.01" data-n="floor2_area"><em>㎡</em></span></label>
-          <label data-floor="3">3階床面積<span class="unit"><input type="number" step="0.01" data-n="floor3_area"><em>㎡</em></span></label>
-          <label data-need="roof_area">屋根面積<span class="unit"><input type="number" step="0.01" data-n="roof_area"><em>㎡</em></span></label>
-          <label data-need="wall_area">外壁面積<span class="unit"><input type="number" step="0.01" data-n="wall_area"><em>㎡</em></span></label>
-          <label data-need="scaffold_area">足場面積<span class="unit"><input type="number" step="0.01" data-n="scaffold_area" placeholder="空欄なら外壁面積"><em>㎡</em></span></label>
-          <label data-need="toilet_count">トイレ数<span class="unit"><input type="number" step="1" data-n="toilet_count"><em>ヶ所</em></span></label>
-          <label data-need="cloth_len">クロス貼り延長<span class="unit"><input type="number" step="0.1" data-n="cloth_len"><em>m</em></span></label>
-        </div>
-        <p class="calc" id="calc"></p>
         <label class="wide block">備考・特記事項（業者への伝達事項）<textarea data-k="remarks" rows="3" placeholder="搬入経路、工事時間の制限、既存設備の状況など"></textarea></label>
       </section>
 
       <section class="card" id="works">
         <div class="card-h"><h2>工事の選択</h2><span>タイプで初期選択し、カードで微調整できます</span></div>
+        <h3 class="lbl">工事タイプ</h3>
         <div class="seg types" id="types"></div>
+
+        <div class="fmt">
+          <div class="plumb-h"><b>Excelの形式</b><span>工事タイプを選ぶと自動で切り替わります。ここで変えることもできます</span></div>
+          <div class="seg" id="formats"></div>
+        </div>
+
+        <div class="plumb" id="plumbing" hidden>
+          <div class="plumb-h"><b>水回りの範囲</b><span>選んだ設備の工事だけが、内訳に出ます</span></div>
+          <h4 class="sub">よく使う組み合わせ</h4>
+          <div class="seg" id="patterns"></div>
+          <h4 class="sub">設備を個別に選ぶ</h4>
+          <div class="fx" id="fixtures"></div>
+        </div>
+
         <div id="cats" class="cats"></div>
       </section>
 
       <section class="card" id="detail">
-        <div class="card-h"><h2>内訳の確認</h2><span>数量・仕様・単位は直接編集できます。単価はExcelで業者が入力します</span></div>
+        <div class="card-h"><h2>内訳の確認</h2><span>数量・仕様・単位は直接入力できます。単価はExcelで業者が入力します</span></div>
         <div id="detailBody"></div>
       </section>
     </main>
@@ -264,10 +283,10 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
       <h4>出力の内容</h4>
       <dl>
         <div><dt>構造・階数</dt><dd id="sStruct">—</dd></div>
-        <div><dt>延床面積</dt><dd id="sArea">—</dd></div>
+        <div><dt>水回り</dt><dd id="sPlumb">—</dd></div>
         <div><dt>工事</dt><dd id="sWorks">—</dd></div>
         <div><dt>内訳項目</dt><dd id="sItems">—</dd></div>
-        <div><dt>数量の要確認</dt><dd id="sTodo">—</dd></div>
+        <div><dt>数量が未入力</dt><dd id="sTodo">—</dd></div>
       </dl>
     </div>
     <div class="sum-actions">
@@ -315,7 +334,10 @@ const CATALOG = {
      "name": "浴室解体処分",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "1階和室、脱衣室等解体処分",
@@ -329,7 +351,10 @@ const CATALOG = {
      "qty": 2.0,
      "unit": "ヶ処",
      "basis": "toilet_count",
-     "factor": 1
+     "factor": 1,
+     "fixtures": [
+      "toilet"
+     ]
     },
     {
      "name": "物置屋根解体処分",
@@ -1121,7 +1146,10 @@ const CATALOG = {
      "name": "浴室照明結線",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "方切ｽｲｯﾁ",
@@ -1179,13 +1207,19 @@ const CATALOG = {
      "name": "浴室換気ﾀﾞｸﾄ工事",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "ﾚﾝｼﾞﾌｰﾄﾞﾀﾞｸﾄ工事",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "ﾊﾟｲﾛｯﾄｽｲｯﾁ",
@@ -1265,7 +1299,10 @@ const CATALOG = {
      "name": "IHｸｯｷﾝｸﾞ",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "ｴｱｺﾝ専用回路100V",
@@ -1283,19 +1320,28 @@ const CATALOG = {
      "name": "食洗",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "洗濯機専用回路",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "浴室換気暖房",
      "spec": "(電源結線含む）",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "group": true,
@@ -1443,25 +1489,38 @@ const CATALOG = {
      "name": "洗濯水栓",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ"
+     "unit": "ヶ",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "洗濯排水金具",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ"
+     "unit": "ヶ",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "給湯機設置・接続",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen",
+      "bathwash"
+     ]
     },
     {
      "name": "追い炊き配管",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "ｶｯﾀｰ・斫り・掘削工",
@@ -1491,43 +1550,64 @@ const CATALOG = {
      "name": "ｼｽﾃﾑｷｯﾁﾝ",
      "spec": "ｸﾘﾅｯﾌﾟ STEDIA",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "仝上取付設置費",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "ｶｯﾌﾟﾎﾞｰﾄﾞ",
      "spec": "ｸﾘﾅｯﾌﾟ STEDIA",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "仝上取付設置費",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "ｼｽﾃﾑﾊﾞｽ",
      "spec": "ｸﾘﾅｯﾌﾟ ｾﾚｳﾞｨｱ",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "仝上取付設置費",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "洗面化粧台",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "14帖用エアコン",
@@ -1563,13 +1643,20 @@ const CATALOG = {
      "name": "ガス給湯器",
      "spec": "リンナイ 24号 フルオート",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen",
+      "bathwash"
+     ]
     },
     {
      "name": "アラウーノ",
      "spec": "S160 スティックリモコン",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "toilet"
+     ]
     }
    ]
   },
@@ -1645,7 +1732,7 @@ const CATALOG = {
  ],
  "presets": [
   {
-   "name": "フルリノベーション",
+   "name": "工事",
    "ids": [
     1,
     2,
@@ -1659,98 +1746,127 @@ const CATALOG = {
     10,
     11,
     12
-   ]
+   ],
+   "format": "renovation"
   },
   {
-   "name": "水回りリフォーム",
-   "ids": [
-    1,
-    8,
-    9,
-    10,
-    11,
-    12
-   ]
-  },
-  {
-   "name": "内装リフォーム",
+   "name": "内装",
    "ids": [
     1,
     3,
     5,
     7,
     8,
+    9,
+    10,
     11,
     12
-   ]
+   ],
+   "format": "mizumawari"
   },
   {
-   "name": "外装リフォーム",
+   "name": "外装",
    "ids": [
     4,
     5,
     7,
     11,
     12
-   ]
+   ],
+   "format": "renovation"
   }
- ]
-};
-// 見積依頼書ジェネレーターの画面。
-// 流れ: 物件情報を入力 → 工事(大項目)を選ぶ → 内訳を確認・編集 → Excel を出力
+ ],
+ "plumbing": {
+  "fixtures": [
+   {
+    "key": "kitchen",
+    "name": "キッチン"
+   },
+   {
+    "key": "bathwash",
+    "name": "風呂＆洗面器"
+   },
+   {
+    "key": "toilet",
+    "name": "トイレ"
+   }
+  ],
+  "patterns": [
+   {
+    "name": "キッチンのみ",
+    "fixtures": [
+     "kitchen"
+    ]
+   },
+   {
+    "name": "キッチン＋風呂＆洗面器",
+    "fixtures": [
+     "kitchen",
+     "bathwash"
+    ]
+   },
+   {
+    "name": "キッチン＋風呂＆洗面器＋トイレ",
+    "fixtures": [
+     "kitchen",
+     "bathwash",
+     "toilet"
+    ]
+   },
+   {
+    "name": "キッチン＋トイレ",
+    "fixtures": [
+     "kitchen",
+     "toilet"
+    ]
+   }
+  ]
+ }
+}
+;
+// TSUMIKIの画面。
+// 流れ: 物件情報を入力 → 工事(大項目)と水回りの範囲を選ぶ → 内訳に数量を入力 → Excel を出力
 // web/build.py がこのファイルを単体HTML版に組み込む。そのとき「Excelを出力」から「起動」の手前までは
 // web/export_xlsx.js に差し替わるので、両方で使う処理はそれより前に置く。
 
 const API = (window.APP_CONFIG && window.APP_CONFIG.API_BASE || "").replace(/\/$/, "");
-const SQM_PER_TSUBO = 3.30579;
 const STRUCT = { wood: "木造", steel: "鉄骨造", rc: "RC造" };
 const FLOOR_LABEL = { 1: "平屋", 2: "2階建て", 3: "3階建て" };
+// Excelの形式(見本のExcelに合わせた2種類)。工事名の初期値も形式ごとに持つ
+const FORMATS = { renovation: { name: "リノベーション工事", title: "リノベーション工事" }, mizumawari: { name: "水回りリフォーム", title: "水回りリフォーム工事" } };
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
-const round2 = x => Math.round(x * 100) / 100;
 
 // ---- 画面の状態 ----
 let catalog = [];           // 大項目の一覧 [{id, name, items: [...]}]。items の形は backend/catalog.json を参照
 let presets = [];           // 工事タイプ [{name, ids}]
+let plumbing = { fixtures: [], patterns: [] }; // 水回りの設備(キッチン等)と、よく使う組み合わせ
 const selected = new Set(); // 選択中の大項目 id
 const openCats = new Set(); // 内訳で開いている大項目 id
-const num = {};             // 数量の元になる数値(床面積など)。キーは入力欄の data-n
+const fixturesOn = new Set(); // 水回りで選択中の設備のキー(kitchen など)
 let structure = "wood";     // 構造(STRUCT のキー)
 let floors = 2;             // 階数
+let format = "renovation";  // Excelの形式(FORMATS のキー)
 
-// 構造・階数の条件に合う項目だけを表示・出力する
-const visible = it => (!it.minFloors || it.minFloors <= floors) && (!it.structures || it.structures.includes(structure));
+// 構造・階数・水回りの範囲に合う項目だけを表示・出力する。fixtures を持つ項目は、そのどれかが選ばれていれば出す
+const visible = it =>
+  (!it.minFloors || it.minFloors <= floors) &&
+  (!it.structures || it.structures.includes(structure)) &&
+  (!it.fixtures || it.fixtures.some(f => fixturesOn.has(f)));
 const visibleItems = c => c.items.filter(i => !i.group && visible(i));
 const selectedCats = () => catalog.filter(c => selected.has(c.id));
 const structLabel = () => `${STRUCT[structure]}・${FLOOR_LABEL[floors]}`;
 
-// ---- 数量の自動入力 ----
-// 入力された数値から、延床面積・坪数などの派生値も計算して返す
-function basisValues() {
-  const v = { ...num };
-  if (floors < 3) v.floor3_area = null;
-  if (floors < 2) v.floor2_area = null;
-  const floorAreas = [v.floor1_area, v.floor2_area, v.floor3_area];
-  if (floorAreas.some(x => x != null)) v.total_area = round2(floorAreas.reduce((s, x) => s + (x || 0), 0));
-  if (v.total_area != null) v.tsubo = round2(v.total_area / SQM_PER_TSUBO);
-  if (v.scaffold_area == null && v.wall_area != null) v.scaffold_area = v.wall_area; // 足場は空欄なら外壁面積
-  return v;
-}
+// 数量は案件ごとに手で入力する。未入力(空)の項目は内訳で黄色にして、サマリに件数を出す
+const needsQty = it => !it.group && (it.qty == null || it.qty === "");
 
-// 数量 = 元の数値 × 係数。手で書き換えた数量(manual)はそのまま残す
-function applyBasis() {
-  const v = basisValues();
-  for (const c of catalog)
-    for (const it of c.items) {
-      if (!it.basis || it.manual) continue;
-      const b = v[it.basis];
-      // 元の数値が空なら数量も空にする(消す前の値や、ひな形に残っている別案件の値を出さないため)
-      it.qty = b == null ? null : round2(b * (it.factor || 1));
-    }
-}
-
-// 元の数値が未入力で、数量を確認する必要がある項目か
-const needsQty = (it, v) => it.basis && v[it.basis] == null && !it.manual;
+// 選択中の工事に水回りの項目が含まれるか(なければ「水回りの範囲」は出さない)
+const hasFixtureItems = () => selectedCats().some(c => c.items.some(i => i.fixtures && (!i.minFloors || i.minFloors <= floors)));
+const plumbingLabel = () => {
+  if (!hasFixtureItems()) return "";
+  const names = plumbing.fixtures.filter(f => fixturesOn.has(f.key)).map(f => f.name);
+  return names.length ? names.join("＋") : "なし";
+};
 
 // ---- 描画 ----
 const ICONS = {
@@ -1769,17 +1885,44 @@ const ICONS = {
 };
 const icon = id => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[id] || ICONS[12]}</svg>`;
 
+const sameSet = (a, b) => a.size === b.size && [...a].every(x => b.has(x));
+
 // 工事タイプのボタン。今の選択と一致するタイプを強調する
 function renderTypes() {
-  const key = ids => [...ids].sort((a, b) => a - b).join();
-  const cur = key(selected);
   $("#types").innerHTML = presets.map((p, i) =>
-    `<button type="button" data-p="${i}" class="${key(p.ids) === cur ? "on" : ""}">${esc(p.name)}</button>`).join("");
+    `<button type="button" data-p="${i}" class="${sameSet(new Set(p.ids), selected) ? "on" : ""}">${esc(p.name)}</button>`).join("");
+}
+
+// 水回りの範囲: よく使う組み合わせのボタンと、設備ごとのチェックボックス
+function renderPlumbing() {
+  const box = $("#plumbing");
+  box.hidden = !hasFixtureItems();
+  if (box.hidden) return;
+  $("#patterns").innerHTML = plumbing.patterns.map((p, i) =>
+    `<button type="button" data-i="${i}" class="${sameSet(new Set(p.fixtures), fixturesOn) ? "on" : ""}">${esc(p.name)}</button>`).join("");
+  $("#fixtures").innerHTML = plumbing.fixtures.map(f =>
+    `<label><input type="checkbox" data-key="${f.key}" ${fixturesOn.has(f.key) ? "checked" : ""}>${esc(f.name)}</label>`).join("");
+}
+
+// Excelの形式のボタン
+function renderFormats() {
+  $("#formats").innerHTML = Object.entries(FORMATS).map(([k, f]) =>
+    `<button type="button" data-f="${k}" class="${k === format ? "on" : ""}">${f.name}</button>`).join("");
+}
+
+// 形式を切り替える。工事名が初期値のままなら、形式に合う初期値に直す
+function setFormat(k) {
+  const t = $("[data-k=work_title]");
+  if (t && Object.values(FORMATS).some(f => f.title === t.value.trim())) t.value = FORMATS[k].title;
+  format = k;
+  renderFormats(); renderTop();
 }
 
 // 工事(大項目)の選択カード
 function renderCats() {
   renderTypes();
+  renderFormats();
+  renderPlumbing();
   $("#cats").innerHTML = catalog.map(c => `
     <label class="cat ${selected.has(c.id) ? "on" : ""}">
       <input type="checkbox" data-id="${c.id}" ${selected.has(c.id) ? "checked" : ""}>
@@ -1789,11 +1932,11 @@ function renderCats() {
 }
 
 // 内訳の表の1行。i は大項目の items 内の位置
-function itemRow(it, i, v) {
-  const cls = [it.group ? "group" : "", needsQty(it, v) ? "todo" : ""].join(" ");
+function itemRow(it, i) {
+  const cls = [it.group ? "group" : "", needsQty(it) ? "todo" : ""].join(" ");
   const cells = it.group ? `<td colspan="4"></td>` : `
     <td><input data-f="spec" value="${esc(it.spec)}"></td>
-    <td class="q"><input data-f="qty" type="number" step="0.01" value="${esc(it.qty)}" title="${it.basis ? "物件情報から自動入力" : ""}"></td>
+    <td class="q"><input data-f="qty" type="number" step="any" inputmode="decimal" placeholder="数量" value="${esc(it.qty)}"></td>
     <td class="u"><input data-f="unit" value="${esc(it.unit)}"></td>
     <td><input data-f="note" value="${esc(it.note)}"></td>`;
   return `
@@ -1805,30 +1948,19 @@ function itemRow(it, i, v) {
 
 // 内訳(選択中の大項目ごとの表)
 function renderDetail() {
-  const v = basisValues();
   const cats = selectedCats();
   $("#detailBody").innerHTML = cats.length ? cats.map(c => `
     <details ${openCats.has(c.id) ? "open" : ""} data-cat="${c.id}">
       <summary><span class="no">${c.id}</span>${esc(c.name)}<small>${visibleItems(c).length}項目</small></summary>
       <div class="tbl"><table>
         <thead><tr><th>名称</th><th>仕様</th><th>数量</th><th>単位</th><th>摘要</th><th></th></tr></thead>
-        <tbody>${c.items.map((it, i) => visible(it) ? itemRow(it, i, v) : "").join("")}</tbody>
+        <tbody>${c.items.map((it, i) => visible(it) ? itemRow(it, i) : "").join("")}</tbody>
       </table></div>
       <div class="tools"><button class="mini" data-act="add">＋ 項目を追加</button><button class="mini" data-act="addg">＋ 見出し(【 】)を追加</button></div>
     </details>`).join("") : `<p class="empty">「工事の選択」で工事を選ぶと、内訳がここに表示されます。</p>`;
-  syncInputs(v);
-  renderSummary(v, cats);
+  renderSummary(cats);
   const n = cats.reduce((s, c) => s + visibleItems(c).length, 0);
   $("#status").textContent = `${cats.length}工事 / ${n}項目 を出力`;
-}
-
-// 階数に合わせて床面積欄を、選択中の工事に必要な数値だけ入力欄を出す
-function syncInputs(v) {
-  const need = new Set();
-  for (const c of selectedCats()) for (const it of c.items) if (it.basis && visible(it)) need.add(it.basis);
-  document.querySelectorAll("[data-floor]").forEach(l => (l.hidden = +l.dataset.floor > floors));
-  document.querySelectorAll("[data-need]").forEach(l => (l.hidden = !need.has(l.dataset.need)));
-  $("#calc").textContent = v.total_area != null ? `延床面積 ${v.total_area}㎡（約 ${v.tsubo} 坪）` : "";
 }
 
 // 上部のタイトルとチップ
@@ -1841,15 +1973,16 @@ function renderTop() {
 }
 
 // 右側の「出力の内容」と左ナビの補足
-function renderSummary(v, cats) {
+function renderSummary(cats) {
   const items = cats.flatMap(visibleItems);
-  const todo = items.filter(i => needsQty(i, v)).length;
+  const todo = items.filter(needsQty).length;
+  const pl = plumbingLabel();
   $("#sStruct").textContent = structLabel();
-  $("#sArea").textContent = v.total_area != null ? `${v.total_area}㎡（${v.tsubo}坪）` : "未入力";
+  $("#sPlumb").textContent = pl || "—";
   $("#sWorks").textContent = `${cats.length}工事`;
   $("#sItems").textContent = `${items.length}項目`;
   $("#sTodo").textContent = todo ? `${todo}項目` : "なし";
-  $("#sTodo").className = todo ? "warn" : "";
+  $("#sTodo").className = todo ? "warn" : "ok";
   $("#navP").textContent = structLabel();
   $("#navW").textContent = `${cats.length}工事を選択`;
   $("#navD").textContent = `${items.length}項目`;
@@ -1859,33 +1992,36 @@ function renderSummary(v, cats) {
 function rerender() { renderCats(); renderDetail(); }
 
 // ---- イベント: 物件情報 ----
-$("#structures").addEventListener("change", e => {
-  structure = e.target.value; applyBasis(); rerender();
-});
-
-$("#floors").addEventListener("change", e => {
-  floors = +e.target.value; applyBasis(); rerender();
-});
-
-// data-k: 文字の項目(お客様名など) / data-n: 数量の元になる数値
-document.addEventListener("input", e => {
-  if (e.target.dataset.k) renderTop();
-  const n = e.target.dataset.n;
-  if (!n) return;
-  num[n] = e.target.value === "" ? null : +e.target.value;
-  applyBasis(); renderDetail();
-});
+$("#structures").addEventListener("change", e => { structure = e.target.value; rerender(); });
+$("#floors").addEventListener("change", e => { floors = +e.target.value; rerender(); });
+document.addEventListener("input", e => { if (e.target.dataset.k) renderTop(); }); // data-k: 文字の項目(お客様名など)
 
 // ---- イベント: 工事の選択 ----
 $("#types").addEventListener("click", e => {
   const i = e.target.dataset.p; if (i == null) return;
   selected.clear(); presets[+i].ids.forEach(id => selected.add(id));
+  if (presets[+i].format) setFormat(presets[+i].format);
   rerender();
 });
+
+$("#formats").addEventListener("click", e => { const k = e.target.dataset.f; if (k) setFormat(k); });
 
 $("#cats").addEventListener("change", e => {
   const id = +e.target.dataset.id;
   e.target.checked ? selected.add(id) : selected.delete(id);
+  rerender();
+});
+
+// 水回り: 組み合わせのボタンで設備のチェックをまとめて切り替え、チェックボックスで個別に変える
+$("#patterns").addEventListener("click", e => {
+  const i = e.target.dataset.i; if (i == null) return;
+  fixturesOn.clear(); plumbing.patterns[+i].fixtures.forEach(k => fixturesOn.add(k));
+  rerender();
+});
+
+$("#fixtures").addEventListener("change", e => {
+  const k = e.target.dataset.key;
+  e.target.checked ? fixturesOn.add(k) : fixturesOn.delete(k);
   rerender();
 });
 
@@ -1895,8 +2031,11 @@ const catOf = el => catalog.find(c => c.id === +el.closest("details").dataset.ca
 $("#detailBody").addEventListener("input", e => {
   const tr = e.target.closest("tr"); if (!tr) return;
   const it = catOf(e.target).items[+tr.dataset.i], f = e.target.dataset.f;
-  if (f === "qty") { it.qty = e.target.value === "" ? null : +e.target.value; it.manual = true; }
-  else it[f] = e.target.value;
+  if (f === "qty") {
+    it.qty = e.target.value === "" ? null : +e.target.value;
+    tr.classList.toggle("todo", needsQty(it)); // 入力のたびに表を作り直すとカーソルが外れるので、行の印と件数だけ更新する
+    renderSummary(selectedCats());
+  } else it[f] = e.target.value;
 });
 
 $("#detailBody").addEventListener("toggle", e => {
@@ -1910,12 +2049,12 @@ $("#detailBody").addEventListener("click", e => {
   const i = +(e.target.closest("tr")?.dataset.i ?? -1);
   if (act === "del") items.splice(i, 1);
   if (act === "up") {
-    // 画面に出ている1つ上の項目と入れ替える(構造・階数で隠れている項目は飛ばす)
+    // 画面に出ている1つ上の項目と入れ替える(構造・階数などで隠れている項目は飛ばす)
     let j = i - 1;
     while (j >= 0 && !visible(items[j])) j--;
     if (j >= 0) [items[j], items[i]] = [items[i], items[j]];
   }
-  if (act === "add") items.push({ name: "", spec: "", qty: 1, unit: "式", manual: true });
+  if (act === "add") items.push({ name: "", spec: "", qty: null, unit: "式" });
   if (act === "addg") items.push({ name: "【】", group: true });
   renderDetail();
 });
@@ -1934,9 +2073,8 @@ function propertyData() {
   document.querySelectorAll("[data-k]").forEach(el => (p[el.dataset.k] = el.value));
   p.floors = floors;
   p.structure = STRUCT[structure];
-  const v = basisValues();
-  for (const k of ["total_area", "tsubo", "floor1_area", "floor2_area", "floor3_area", "roof_area", "wall_area", "scaffold_area", "toilet_count"])
-    p[k] = v[k] ?? null;
+  p.plumbing = plumbingLabel();
+  p.format = format;
   return p;
 }
 
@@ -1953,153 +2091,245 @@ function exportData() {
 }
 
 // ---- 単体HTML版: ブラウザ内でExcelを生成して保存する(backend/excel_export.py の移植) ----
-// レイアウトを変えるときは excel_export.py とそろえる。
+// レイアウトを変えるときは excel_export.py とそろえる。出力の形は2種類(見本のExcelに合わせている):
+//   renovation … 見積書(8列) + 物件情報 / mizumawari … 表紙 + 見積もり内訳(11列) + 物件情報
 // ExcelJS は文字列を数式として扱わない(数式は { formula } で明示する)ので、入力値はそのまま書いてよい。
 const XFONT = "ＭＳ 明朝";
-const THIN = { style: "thin" }, HAIR = { style: "hair" };
-const HEADER_FILL = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD9D9D9" } };
-const INPUT_FILL = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF2CC" } }; // 業者の入力欄(黄色)
-const MONEY = "#,##0";
+const THIN = { style: "thin" };
+const SEP = "　";
+const HEAD = { no: "No.", name: `名${SEP}${SEP}${SEP}称`, spec: `仕${SEP}${SEP}${SEP}様`, qty: "数量", unit: "単位", price: `単${SEP}価`, amount: `金${SEP}額`, note: `摘${SEP}要` };
+const DETAIL = `（内${SEP}訳${SEP}明${SEP}細）`;
+const DEFAULT_TITLE = { renovation: "リノベーション工事", mizumawari: "水回りリフォーム工事" };
+const ALIGN = { no: "center", name: "left", spec: "left", qty: "right", unit: "center", price: "right", amount: "right", note: "left" };
 
-// 列(E・H・J は元フォーマットにある細い余白列)
-const COL = { no: 1, name: 2, spec: 3, qty: 4, unit: 6, price: 7, amount: 9, note: 11 };
-const LAST_COL = COL.note;
-const AMOUNT = "I"; // 金額列(数式で参照する)
-const COL_WIDTHS = [6, 38, 34, 9, 2, 7, 14, 2, 16, 2, 28];
-const RULED_COLS = Object.values(COL); // 左側に縦罫線を引く列
+// 列の配置。spacers は「直前の列とひと続きに見せる細い余白列」(罫線の左右だけ外す)
+const LAYOUTS = {
+  renovation: { cols: { no: 1, name: 2, spec: 3, qty: 4, unit: 5, price: 6, amount: 7, note: 8 }, widths: [6, 38, 30, 9, 7, 13, 15, 26], spacers: [], last: 8 },
+  mizumawari: { cols: { no: 1, name: 2, spec: 3, qty: 4, unit: 6, price: 7, amount: 9, note: 11 }, widths: [5, 30, 34, 9, 1.33, 7, 12, 1.33, 14, 1.33, 24], spacers: [5, 8, 10], last: 11 },
+};
 
-const xfont = (size = 11, bold = false) => ({ name: XFONT, size, bold });
+const xfont = (size = 11, bold = false, name = XFONT) => ({ name, size, bold });
 const nq = v => (v == null || v === "" ? null : Math.round(+v * 100) / 100);
+const colL = n => { let s = ""; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
 
 async function buildXlsx({ property: p, categories: cats }) {
   const wb = new ExcelJS.Workbook();
-  writeEstimateSheet(wb, p, cats);
-  writePropertySheet(wb, p);
+  if (p.format === "mizumawari") {
+    const cover = wb.addWorksheet("表紙");
+    const est = wb.addWorksheet("見積もり内訳");
+    const totalCell = writeMizumawari(est, p, cats);
+    writeCover(cover, p, totalCell);
+  } else writeRenovation(wb.addWorksheet("見積書"), p, cats);
+  writePropertySheet(wb.addWorksheet("物件情報"), p);
   return wb.xlsx.writeBuffer();
 }
 
-// 「見積書」シート: ヘッダ → 大項目の一覧 → 調整費 → 合計 → 大項目ごとの内訳と小計
-function writeEstimateSheet(wb, p, cats) {
-  const ws = wb.addWorksheet("見積書", {
-    views: [{ state: "frozen", ySplit: 3 }],
-    pageSetup: { paperSize: 9, orientation: "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: "3:3" },
-  });
-  COL_WIDTHS.forEach((w, i) => (ws.getColumn(i + 1).width = w));
-
-  const put = (row, col, value = null, { bold = false, fmt, fill, align } = {}) => {
-    const cell = ws.getCell(row, col);
-    cell.value = value;
+// 見積シートへ書き込む小さな道具
+function makeSheet(ws, lay) {
+  lay.widths.forEach((w, i) => (ws.getColumn(i + 1).width = w));
+  const put = (row, key, value = null, { bold = false, fmt, align, formula } = {}) => {
+    const c = typeof key === "string" ? lay.cols[key] : key;
+    const cell = ws.getCell(row, c);
+    cell.value = formula != null ? { formula } : value;
     cell.font = xfont(11, bold);
     if (fmt) cell.numFmt = fmt;
-    if (fill) cell.fill = fill;
-    if (align) cell.alignment = { horizontal: align };
+    cell.alignment = { horizontal: align || ALIGN[key] || "left", vertical: "middle" };
     return cell;
   };
-  // 1行分の罫線。line=THIN で上下を実線にする(ヘッダ・合計・小計)
-  const rule = (row, line = HAIR) => {
-    for (let c = 1; c <= LAST_COL; c++)
+  // 1行分の罫線(見本は全セルが細い実線)と行の高さ
+  const grid = (row, height = 21) => {
+    for (let c = 1; c <= lay.last; c++)
       ws.getCell(row, c).border = {
-        left: RULED_COLS.includes(c) ? THIN : undefined,
-        right: c === LAST_COL || RULED_COLS.includes(c + 1) ? THIN : undefined,
-        top: line, bottom: line,
+        top: THIN, bottom: THIN,
+        left: lay.spacers.includes(c) ? undefined : THIN,
+        right: lay.spacers.includes(c + 1) ? undefined : THIN,
       };
+    ws.getRow(row).height = height;
   };
-
-  // ---- タイトル・宛先 ----
-  const title = put(1, COL.name, `${p.customer_name || "お名前"} 様邸${p.work_title || "リノベーション工事"} 見積書`);
-  title.font = xfont(14, true); ws.getRow(1).height = 24;
-  put(2, COL.name, p.vendor_name ? `${p.vendor_name} 御中` : "");
-  ws.mergeCells(2, COL.price, 2, LAST_COL);
-  put(2, COL.price, p.company_name || "", { align: "right" });
-
-  // ---- 見出し行 ----
-  const headRow = 3;
-  rule(headRow, THIN);
-  for (let c = 1; c <= LAST_COL; c++) ws.getCell(headRow, c).fill = HEADER_FILL;
-  const headings = { [COL.no]: "No.", [COL.name]: "名　　　称", [COL.spec]: "仕　　　様", [COL.qty]: "数量",
-    [COL.unit]: "単位", [COL.price]: "単　価", [COL.amount]: "金　額", [COL.note]: "摘　要" };
-  for (const [c, text] of Object.entries(headings))
-    put(headRow, +c, text, { bold: true }).alignment = { horizontal: "center", vertical: "middle" };
-  [COL.qty, COL.price, COL.amount].forEach(c => ws.mergeCells(headRow, c, headRow, c + 1)); // 右隣の余白列と結合
-
-  // ---- 大項目の一覧(金額はあとで各小計への参照を入れる) ----
-  let row = headRow + 1;
-  put(row++, COL.no, "（内　訳　明　細）");
-  const summaryRows = [];
-  cats.forEach((cat, i) => {
-    put(row, COL.no, i + 1); put(row, COL.name, cat.name); put(row, COL.qty, 1); put(row, COL.unit, "式");
-    rule(row); summaryRows.push(row); row++;
-  });
-
-  const adjRow = row + 1;
-  put(adjRow, COL.name, "調整費");
-  put(adjRow, COL.amount, null, { fmt: "#,##0;[Red]-#,##0", fill: INPUT_FILL });
-  rule(adjRow);
-
-  const totalRow = adjRow + 2;
-  put(totalRow, COL.name, "合　計", { bold: true });
-  rule(totalRow, THIN);
-
-  // ---- 大項目ごとの内訳 ----
-  row = totalRow + 2;
-  const subtotalRows = [];
-  cats.forEach((cat, i) => {
-    put(row++, COL.no, "（内　訳　明　細）");
-    put(row, COL.no, i + 1, { bold: true }); put(row, COL.name, cat.name, { bold: true });
-    rule(row); row++;
-
-    const first = row;
-    for (const it of cat.items) { writeItemRow(put, row, it); rule(row); row++; }
-
-    put(row, COL.name, "小　計", { bold: true });
-    // 項目が0件のとき SUM(I{first}:I{first-1}) は小計セル自身を含む循環参照になるので 0 にする
-    const subtotal = row > first ? { formula: `SUM(${AMOUNT}${first}:${AMOUNT}${row - 1})` } : 0;
-    put(row, COL.amount, subtotal, { bold: true, fmt: MONEY });
-    rule(row, THIN); subtotalRows.push(row); row += 2;
-  });
-
-  // 一覧の金額 = 各小計、合計 = 一覧の合計 + 調整費
-  summaryRows.forEach((r, i) => put(r, COL.amount, { formula: `${AMOUNT}${subtotalRows[i]}` }, { fmt: MONEY }));
-  put(totalRow, COL.amount,
-    { formula: `SUM(${AMOUNT}${summaryRows[0]}:${AMOUNT}${summaryRows[summaryRows.length - 1]})+N(${AMOUNT}${adjRow})` },
-    { bold: true, fmt: MONEY });
+  const detailHeader = row => { grid(row); ws.mergeCells(row, 1, row, lay.last); put(row, "no", DETAIL, { bold: true, align: "left" }); };
+  const item = (row, it, money) => {
+    grid(row);
+    if (it.group) { put(row, "name", it.name, { bold: true }); return; }
+    const p = colL(lay.cols.price), q = colL(lay.cols.qty);
+    put(row, "name", it.name);
+    put(row, "spec", it.spec || null);
+    put(row, "qty", nq(it.qty), { align: "right" });
+    put(row, "unit", it.unit || null, { align: "center" });
+    put(row, "price", null, { fmt: money, align: "right" }); // 単価: 業者が入力
+    put(row, "amount", null, { fmt: money, align: "right", formula: `IF(${p}${row}="","",ROUND(${q}${row}*${p}${row},0))` });
+    put(row, "note", it.note || null);
+  };
+  const head = (row, titleText, company, vendor) => {
+    ws.getRow(1).height = 30;
+    const t = ws.getCell(1, 2); t.value = titleText; t.font = xfont(16, true); t.alignment = { vertical: "middle" };
+    ws.getRow(2).height = 21;
+    if (vendor) put(2, "name", `${vendor} 御中`);
+    if (company) { ws.mergeCells(2, lay.cols.price, 2, lay.last); put(2, "price", company, { align: "right" }); }
+    grid(row);
+    for (const [k, text] of Object.entries(HEAD)) put(row, k, text, { bold: true, align: "center" });
+    for (const k of ["qty", "price", "amount"]) if (lay.spacers.includes(lay.cols[k] + 1)) ws.mergeCells(row, lay.cols[k], row, lay.cols[k] + 1);
+  };
+  return { put, grid, detailHeader, item, head };
 }
 
-// 内訳の1行。見出し(【 】)は名称だけを太字で書く
-function writeItemRow(put, row, it) {
-  if (it.group) { put(row, COL.name, it.name, { bold: true }); return; }
-  put(row, COL.name, it.name);
-  put(row, COL.spec, it.spec || null);
-  put(row, COL.qty, nq(it.qty), { fmt: "#,##0.##", align: "right" });
-  put(row, COL.unit, it.unit || null, { align: "center" });
-  put(row, COL.price, null, { fmt: MONEY, fill: INPUT_FILL }); // 単価: 業者が入力
-  put(row, COL.amount, { formula: `IF(G${row}="","",ROUND(D${row}*G${row},0))` }, { fmt: MONEY });
-  put(row, COL.note, it.note || null, { fill: INPUT_FILL });
+const titleOf = (p, fmt) => `${p.customer_name || "〇〇"} 様邸${SEP}${p.work_title || DEFAULT_TITLE[fmt]}${SEP}見積書`;
+
+function pageSetup(ws, orientation, lastCol, lastRow, titleRow) {
+  const m = orientation === "landscape" ? 0.4 : 0.7;
+  ws.pageSetup = {
+    paperSize: 9, orientation, fitToPage: true, fitToWidth: 1, fitToHeight: 0,
+    horizontalCentered: true, margins: { left: m, right: m, top: 0.5, bottom: 0.75, header: 0.3, footer: 0.3 },
+    printArea: `A1:${colL(lastCol)}${lastRow}`, printTitlesRow: `${titleRow}:${titleRow}`,
+  };
+}
+
+// リノベーション工事「見積書」シート: ヘッダ → 大項目の一覧 → 調整費 → 合計 → 大項目ごとの内訳と小計
+function writeRenovation(ws, p, cats) {
+  const money = "#,##0\\円", lay = LAYOUTS.renovation, s = makeSheet(ws, lay);
+  s.head(3, titleOf(p, "renovation"), p.company_name, p.vendor_name);
+
+  s.detailHeader(4);
+  let row = 5; const summaryRows = [];
+  cats.forEach((cat, i) => {
+    s.grid(row); s.put(row, "no", i + 1); s.put(row, "name", cat.name); s.put(row, "qty", 1, { align: "right" }); s.put(row, "unit", "式", { align: "center" });
+    summaryRows.push(row); row++;
+  });
+  s.grid(row);
+  const adjRow = row + 1; s.grid(adjRow); s.put(adjRow, "name", "調整費"); s.put(adjRow, "amount", null, { fmt: money, align: "right" });
+  s.grid(adjRow + 1);
+  const totalRow = adjRow + 2; s.grid(totalRow); s.put(totalRow, "name", `合${SEP}計`, { bold: true });
+
+  row = totalRow + 2; const subtotalRows = [];
+  cats.forEach((cat, i) => {
+    s.detailHeader(row++);
+    s.grid(row); s.put(row, "no", i + 1, { bold: true }); s.put(row, "name", cat.name, { bold: true }); row++;
+    const first = row;
+    for (const it of cat.items) s.item(row++, it, money);
+    s.grid(row); s.put(row, "name", `小${SEP}計`, { bold: true });
+    // 項目が0件のとき SUM(G{first}:G{first-1}) は小計セル自身を含む循環参照になるので 0 にする
+    if (row > first) s.put(row, "amount", null, { bold: true, fmt: money, align: "right", formula: `SUM(G${first}:G${row - 1})` });
+    else s.put(row, "amount", 0, { bold: true, fmt: money, align: "right" });
+    subtotalRows.push(row); row += 2;
+  });
+
+  summaryRows.forEach((r, i) => s.put(r, "amount", null, { fmt: money, align: "right", formula: `G${subtotalRows[i]}` }));
+  if (summaryRows.length) s.put(totalRow, "amount", null, { bold: true, fmt: money, align: "right", formula: `SUM(G${summaryRows[0]}:G${summaryRows[summaryRows.length - 1]})+N(G${adjRow})` });
+  ws.views = [{ state: "frozen", ySplit: 3 }];
+  pageSetup(ws, "portrait", lay.last, row - 2, 3);
+}
+
+// 水回りリフォーム「見積もり内訳」シート: ヘッダ → 大項目ごとの内訳と小計 → 大項目の一覧 → 合計。合計セルの番地を返す
+function writeMizumawari(ws, p, cats) {
+  const money = "#,##0_);[Red](#,##0)", lay = LAYOUTS.mizumawari, s = makeSheet(ws, lay);
+  ws.getColumn(12).width = 14.5; for (let c = 13; c <= 26; c++) ws.getColumn(c).width = 8;
+  s.head(3, titleOf(p, "mizumawari"), p.company_name, p.vendor_name);
+  s.detailHeader(4);
+
+  let row = 5; const subtotalRows = [];
+  cats.forEach((cat, i) => {
+    s.grid(row); s.put(row, "no", i + 1, { bold: true }); s.put(row, "name", cat.name, { bold: true }); row++;
+    const first = row;
+    for (const it of cat.items) s.item(row++, it, money);
+    s.grid(row++); // 業者が項目を書き足せる予備の行(小計に含まれる)
+    s.grid(row); s.put(row, "name", `小${SEP}計`, { bold: true, align: "center" });
+    s.put(row, "amount", null, { bold: true, fmt: money, align: "right", formula: `SUM(I${first}:I${row - 1})` });
+    subtotalRows.push(row++);
+    s.grid(row++);
+  });
+
+  row++;
+  s.detailHeader(row++);
+  const firstSum = row;
+  cats.forEach((cat, i) => {
+    s.grid(row); s.put(row, "no", i + 1); s.put(row, "name", cat.name); s.put(row, "qty", 1, { align: "right" }); s.put(row, "unit", "式", { align: "center" });
+    s.put(row, "amount", null, { fmt: money, align: "right", formula: `I${subtotalRows[i]}` });
+    row++;
+  });
+  s.grid(row++); // 予備の行(諸経費などを書き足せる)
+  s.grid(row); s.put(row, "name", `合${SEP}計`, { bold: true, align: "center" });
+  s.put(row, "amount", null, { bold: true, fmt: money, align: "right", formula: `SUM(I${firstSum}:I${row - 1})` });
+  ws.views = [{ state: "frozen", ySplit: 3 }];
+  pageSetup(ws, "landscape", lay.last, row, 3);
+  return `I${row}`;
+}
+
+// 表紙。御見積金額は見積もり内訳の合計を参照する(単価が入ると金額が出る)
+const COVER_WIDTHS = [...Array(20).fill(3.66), 5.16, ...Array(9).fill(3.66), ...Array(4).fill(3.5), ...Array(3).fill(3.66), 9];
+const COVER_HEIGHTS = { 1: 18, 2: 18, 3: 39, 4: 11.25, 5: 18, 6: 19.5, 7: 31.5, 8: 12.75, 9: 15.75, 10: 18, 11: 18, 12: 21.75, 13: 19.5, 14: 12, 15: 19.5, 16: 22.5, 17: 18, 18: 18, 19: 18, 20: 18, 21: 15, 22: 18, 23: 15, 24: 18, 25: 15, 26: 18, 27: 15, 28: 18, 29: 14.25, 30: 18, 31: 18 };
+function writeCover(ws, p, totalCell) {
+  COVER_WIDTHS.forEach((w, i) => (ws.getColumn(i + 1).width = w));
+  Object.entries(COVER_HEIGHTS).forEach(([r, h]) => (ws.getRow(+r).height = h));
+  const put = (addr, value = null, { size = 12, bold = false, h = "left", v, fmt, merge, formula, name = XFONT } = {}) => {
+    if (merge) ws.mergeCells(merge);
+    const c = ws.getCell(addr);
+    c.value = formula != null ? { formula } : value;
+    c.font = xfont(size, bold, name);
+    c.alignment = { horizontal: h, vertical: v };
+    if (fmt) c.numFmt = fmt;
+    return c;
+  };
+  put("A1", `御${SEP}見${SEP}積${SEP}書`, { size: 24, bold: true, h: "center", merge: "A1:AJ3" });
+  const now = new Date();
+  put("AC5", `令和${now.getFullYear() - 2018}`, { h: "right", v: "middle", merge: "AC5:AD5" });
+  put("AE5", "年", { v: "middle" }); put("AF5", now.getMonth() + 1, { h: "right", v: "middle" });
+  put("AG5", "月", { v: "middle" }); put("AH5", now.getDate(), { h: "right", v: "middle" }); put("AI5", "日", { v: "middle" });
+  put("B7", `${p.customer_name || ""}${SEP}様`, { size: 18, merge: "B7:N7" });
+
+  put("C10", "御見積金額 ", { size: 22, h: "center", merge: "C10:J11" });
+  put("K10", "￥", { size: 22, h: "center", merge: "K10:K11" });
+  put("L10", null, { size: 22, h: "center", merge: "L10:U11", fmt: "[DBNum3][$-411]#,##0", formula: "H13+S13" });
+  put("V10", "円", { size: 22, h: "center", merge: "V10:W11" });
+  for (let c = 3; c <= 23; c++) ws.getCell(11, c).border = { bottom: THIN };
+  put("C13", "内訳"); put("E13", "工事金額 ");
+  const yen = "\"¥\"#,##0;[Red]\"¥\"\\-#,##0";
+  put("H13", null, { size: 14, h: "center", merge: "H13:L13", fmt: yen, formula: `'見積もり内訳'!${totalCell}` });
+  put("O13", "消費税相当額", { h: "center", merge: "O13:R13" });
+  put("S13", null, { size: 14, h: "center", merge: "S13:V13", fmt: yen, formula: "H13*0.1" });
+  put("H15", " 上記の通り御見積申し上げます。", { size: 14, h: "center", merge: "H15:S15" });
+
+  // 検印欄
+  [[26, "検印"], [29, "検印"], [32, "作成者"]].forEach(([li, label]) => {
+    const a = colL(li), b = colL(li + 2);
+    put(`${a}18`, label, { size: 11, h: "center", merge: `${a}18:${b}18` });
+    ws.mergeCells(`${a}19:${b}21`);
+    for (let r = 18; r <= 21; r++) for (let c = li; c <= li + 2; c++)
+      ws.getCell(r, c).border = { left: c === li ? THIN : undefined, right: c === li + 2 ? THIN : undefined, top: r <= 19 ? THIN : undefined, bottom: r === 18 || r === 21 ? THIN : undefined };
+  });
+
+  const remarks = p.remarks || "";
+  [[20, "工事名", p.work_title || DEFAULT_TITLE.mizumawari, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", p.work_period, "F24:O24"],
+   [26, "決済条件", null, "F26:O26"], [28, "有効期限", null, "F28:O28"], [30, "備考", remarks || null, "F30:O30"]].forEach(([r, label, value, rng]) => {
+    put(`B${r}`, label, { h: "center", v: "middle", merge: `B${r}:D${r}` });
+    put(`F${r}`, value || null, { h: "left", v: "middle", merge: rng });
+  });
+  if (remarks.length > 24) { // 備考が長いときは行を高くして折り返す
+    ws.getRow(30).height = Math.min(18 * (Math.floor(remarks.length / 24) + 1), 160);
+    ws.getCell("F30").alignment = { horizontal: "left", vertical: "top", wrapText: true };
+  }
+  if (p.company_name) put("Y24", p.company_name, { size: 18, bold: true, h: "center", v: "middle", merge: "Y24:AJ25", name: "HG丸ｺﾞｼｯｸM-PRO" });
+
+  ws.pageSetup = { paperSize: 9, orientation: "landscape", fitToPage: true, fitToWidth: 1, fitToHeight: 1, horizontalCentered: true,
+    margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.75, header: 0.3, footer: 0.3 }, printArea: "A1:AJ31" };
 }
 
 // 「物件情報」シート
-function writePropertySheet(wb, p) {
-  const ps = wb.addWorksheet("物件情報");
-  ps.getColumn(1).width = 22; ps.getColumn(2).width = 40;
-  ps.getCell(1, 1).value = "物件情報（見積条件）"; ps.getCell(1, 1).font = xfont(14, true);
-  const u = (v, unit) => (v == null || v === "" ? null : `${nq(v)} ${unit}`);
+function writePropertySheet(ps, p) {
+  ps.getColumn(1).width = 22; ps.getColumn(2).width = 48;
+  ps.getCell(1, 1).value = "物件情報（見積条件）"; ps.getCell(1, 1).font = xfont(16, true);
   const rows = [
-    ["お客様名", p.customer_name], ["工事名", p.work_title], ["物件所在地", p.address], ["構造", p.structure],
+    ["お客様名", p.customer_name], ["工事名", p.work_title], ["物件所在地", p.address], ["構造・工法", p.structure],
     ["依頼元", p.company_name], ["提出先（業者）", p.vendor_name], ["見積提出期限", p.due_date], ["工事希望時期", p.work_period],
-    ["階数", FLOOR_LABEL[p.floors]],
-    ["延床面積", u(p.total_area, "㎡")], ["延床面積（坪）", u(p.tsubo, "坪")],
-    ["1階床面積", u(p.floor1_area, "㎡")], ["2階床面積", u(p.floor2_area, "㎡")], ["3階床面積", u(p.floor3_area, "㎡")],
-    ["屋根面積", u(p.roof_area, "㎡")], ["外壁面積", u(p.wall_area, "㎡")], ["足場面積", u(p.scaffold_area, "㎡")],
-    ["トイレ数", u(p.toilet_count, "ヶ所")], ["備考・特記事項", p.remarks],
+    ["階数", FLOOR_LABEL[p.floors]], ["水回りの範囲", p.plumbing], ["備考・特記事項", p.remarks],
   ];
   const box = { left: THIN, right: THIN, top: THIN, bottom: THIN };
   rows.forEach(([label, value], i) => {
-    const a = ps.getCell(i + 3, 1), b = ps.getCell(i + 3, 2);
-    a.value = label; a.font = xfont(11, true); a.fill = HEADER_FILL; a.border = box;
-    b.value = value || null; b.font = xfont(); b.alignment = { wrapText: true, vertical: "top" }; b.border = box;
+    const r = i + 3, a = ps.getCell(r, 1), b = ps.getCell(r, 2);
+    a.value = label; a.font = xfont(11, true); a.border = box; a.alignment = { vertical: "middle" };
+    b.value = value || null; b.font = xfont(); b.alignment = { wrapText: true, vertical: r === 13 ? "top" : "middle" }; b.border = box;
+    ps.getRow(r).height = r === 13 ? 63 : 21;
   });
   const note = ps.getCell(rows.length + 4, 1);
-  note.value = "※ 黄色のセル（単価・摘要）をご記入ください。金額・小計・合計は自動計算されます。"; note.font = xfont();
+  note.value = "※ 単価・摘要をご記入ください。金額・小計・合計は自動計算されます。"; note.font = xfont(10);
 }
 
 // ---- Excelを出力(単体HTML版) ----
@@ -2135,18 +2365,16 @@ function notify(msg) {
 // ---- 起動 ----
 (async () => {
   const cat = CATALOG;
-  catalog = cat.categories; presets = cat.presets || [];
+  catalog = cat.categories; presets = cat.presets || []; plumbing = cat.plumbing || plumbing;
+  // ひな形に残っている別案件の数量は使わない。数量は案件ごとに手で入力する(「式」だけは 1)
+  for (const c of catalog) for (const it of c.items) if (!it.group) it.qty = it.unit === "式" ? 1 : null;
   catalog.forEach(c => selected.add(c.id));
-  applyBasis();
+  if (presets[0] && presets[0].format) format = presets[0].format;
+  // 初期は、いちばん範囲の広い組み合わせ(設備をいちばん多く含むもの)
+  const widest = plumbing.patterns.reduce((a, p) => (!a || p.fixtures.length > a.fixtures.length ? p : a), null);
+  (widest ? widest.fixtures : plumbing.fixtures.map(f => f.key)).forEach(k => fixturesOn.add(k));
   rerender();
 })();
-
-
-// 例として入れておく数値(サンプル)
-for (const [k, v] of Object.entries({ floor1_area: 63.6, floor2_area: 33, roof_area: 83, wall_area: 123.3, scaffold_area: 360, toilet_count: 2, cloth_len: 670 })) {
-  const el = document.querySelector(`[data-n=${k}]`);
-  if (el) { el.value = v; el.dispatchEvent(new Event("input", { bubbles: true })); }
-}
 
 </script>
 </body>

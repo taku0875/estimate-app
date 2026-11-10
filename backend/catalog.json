@@ -34,7 +34,10 @@
      "name": "浴室解体処分",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "1階和室、脱衣室等解体処分",
@@ -48,7 +51,10 @@
      "qty": 2.0,
      "unit": "ヶ処",
      "basis": "toilet_count",
-     "factor": 1
+     "factor": 1,
+     "fixtures": [
+      "toilet"
+     ]
     },
     {
      "name": "物置屋根解体処分",
@@ -840,7 +846,10 @@
      "name": "浴室照明結線",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "方切ｽｲｯﾁ",
@@ -898,13 +907,19 @@
      "name": "浴室換気ﾀﾞｸﾄ工事",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "ﾚﾝｼﾞﾌｰﾄﾞﾀﾞｸﾄ工事",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "ﾊﾟｲﾛｯﾄｽｲｯﾁ",
@@ -984,7 +999,10 @@
      "name": "IHｸｯｷﾝｸﾞ",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "ｴｱｺﾝ専用回路100V",
@@ -1002,19 +1020,28 @@
      "name": "食洗",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "洗濯機専用回路",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "浴室換気暖房",
      "spec": "(電源結線含む）",
      "qty": 1.0,
-     "unit": "ヶ処"
+     "unit": "ヶ処",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "group": true,
@@ -1162,25 +1189,38 @@
      "name": "洗濯水栓",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ"
+     "unit": "ヶ",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "洗濯排水金具",
      "spec": "",
      "qty": 1.0,
-     "unit": "ヶ"
+     "unit": "ヶ",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "給湯機設置・接続",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen",
+      "bathwash"
+     ]
     },
     {
      "name": "追い炊き配管",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "ｶｯﾀｰ・斫り・掘削工",
@@ -1210,43 +1250,64 @@
      "name": "ｼｽﾃﾑｷｯﾁﾝ",
      "spec": "ｸﾘﾅｯﾌﾟ STEDIA",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "仝上取付設置費",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "ｶｯﾌﾟﾎﾞｰﾄﾞ",
      "spec": "ｸﾘﾅｯﾌﾟ STEDIA",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "仝上取付設置費",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen"
+     ]
     },
     {
      "name": "ｼｽﾃﾑﾊﾞｽ",
      "spec": "ｸﾘﾅｯﾌﾟ ｾﾚｳﾞｨｱ",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "仝上取付設置費",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "洗面化粧台",
      "spec": "",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "bathwash"
+     ]
     },
     {
      "name": "14帖用エアコン",
@@ -1282,13 +1343,20 @@
      "name": "ガス給湯器",
      "spec": "リンナイ 24号 フルオート",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen",
+      "bathwash"
+     ]
     },
     {
      "name": "アラウーノ",
      "spec": "S160 スティックリモコン",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "toilet"
+     ]
     }
    ]
   },
@@ -1364,7 +1432,7 @@
  ],
  "presets": [
   {
-   "name": "フルリノベーション",
+   "name": "工事",
    "ids": [
     1,
     2,
@@ -1378,40 +1446,80 @@
     10,
     11,
     12
-   ]
+   ],
+   "format": "renovation"
   },
   {
-   "name": "水回りリフォーム",
-   "ids": [
-    1,
-    8,
-    9,
-    10,
-    11,
-    12
-   ]
-  },
-  {
-   "name": "内装リフォーム",
+   "name": "内装",
    "ids": [
     1,
     3,
     5,
     7,
     8,
+    9,
+    10,
     11,
     12
-   ]
+   ],
+   "format": "mizumawari"
   },
   {
-   "name": "外装リフォーム",
+   "name": "外装",
    "ids": [
     4,
     5,
     7,
     11,
     12
-   ]
+   ],
+   "format": "renovation"
   }
- ]
+ ],
+ "plumbing": {
+  "fixtures": [
+   {
+    "key": "kitchen",
+    "name": "キッチン"
+   },
+   {
+    "key": "bathwash",
+    "name": "風呂＆洗面器"
+   },
+   {
+    "key": "toilet",
+    "name": "トイレ"
+   }
+  ],
+  "patterns": [
+   {
+    "name": "キッチンのみ",
+    "fixtures": [
+     "kitchen"
+    ]
+   },
+   {
+    "name": "キッチン＋風呂＆洗面器",
+    "fixtures": [
+     "kitchen",
+     "bathwash"
+    ]
+   },
+   {
+    "name": "キッチン＋風呂＆洗面器＋トイレ",
+    "fixtures": [
+     "kitchen",
+     "bathwash",
+     "toilet"
+    ]
+   },
+   {
+    "name": "キッチン＋トイレ",
+    "fixtures": [
+     "kitchen",
+     "toilet"
+    ]
+   }
+  ]
+ }
 }

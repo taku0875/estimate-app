@@ -1,151 +1,243 @@
 // ---- 単体HTML版: ブラウザ内でExcelを生成して保存する(backend/excel_export.py の移植) ----
-// レイアウトを変えるときは excel_export.py とそろえる。
+// レイアウトを変えるときは excel_export.py とそろえる。出力の形は2種類(見本のExcelに合わせている):
+//   renovation … 見積書(8列) + 物件情報 / mizumawari … 表紙 + 見積もり内訳(11列) + 物件情報
 // ExcelJS は文字列を数式として扱わない(数式は { formula } で明示する)ので、入力値はそのまま書いてよい。
 const XFONT = "ＭＳ 明朝";
-const THIN = { style: "thin" }, HAIR = { style: "hair" };
-const HEADER_FILL = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD9D9D9" } };
-const INPUT_FILL = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF2CC" } }; // 業者の入力欄(黄色)
-const MONEY = "#,##0";
+const THIN = { style: "thin" };
+const SEP = "　";
+const HEAD = { no: "No.", name: `名${SEP}${SEP}${SEP}称`, spec: `仕${SEP}${SEP}${SEP}様`, qty: "数量", unit: "単位", price: `単${SEP}価`, amount: `金${SEP}額`, note: `摘${SEP}要` };
+const DETAIL = `（内${SEP}訳${SEP}明${SEP}細）`;
+const DEFAULT_TITLE = { renovation: "リノベーション工事", mizumawari: "水回りリフォーム工事" };
+const ALIGN = { no: "center", name: "left", spec: "left", qty: "right", unit: "center", price: "right", amount: "right", note: "left" };
 
-// 列(E・H・J は元フォーマットにある細い余白列)
-const COL = { no: 1, name: 2, spec: 3, qty: 4, unit: 6, price: 7, amount: 9, note: 11 };
-const LAST_COL = COL.note;
-const AMOUNT = "I"; // 金額列(数式で参照する)
-const COL_WIDTHS = [6, 38, 34, 9, 2, 7, 14, 2, 16, 2, 28];
-const RULED_COLS = Object.values(COL); // 左側に縦罫線を引く列
+// 列の配置。spacers は「直前の列とひと続きに見せる細い余白列」(罫線の左右だけ外す)
+const LAYOUTS = {
+  renovation: { cols: { no: 1, name: 2, spec: 3, qty: 4, unit: 5, price: 6, amount: 7, note: 8 }, widths: [6, 38, 30, 9, 7, 13, 15, 26], spacers: [], last: 8 },
+  mizumawari: { cols: { no: 1, name: 2, spec: 3, qty: 4, unit: 6, price: 7, amount: 9, note: 11 }, widths: [5, 30, 34, 9, 1.33, 7, 12, 1.33, 14, 1.33, 24], spacers: [5, 8, 10], last: 11 },
+};
 
-const xfont = (size = 11, bold = false) => ({ name: XFONT, size, bold });
+const xfont = (size = 11, bold = false, name = XFONT) => ({ name, size, bold });
 const nq = v => (v == null || v === "" ? null : Math.round(+v * 100) / 100);
+const colL = n => { let s = ""; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
 
 async function buildXlsx({ property: p, categories: cats }) {
   const wb = new ExcelJS.Workbook();
-  writeEstimateSheet(wb, p, cats);
-  writePropertySheet(wb, p);
+  if (p.format === "mizumawari") {
+    const cover = wb.addWorksheet("表紙");
+    const est = wb.addWorksheet("見積もり内訳");
+    const totalCell = writeMizumawari(est, p, cats);
+    writeCover(cover, p, totalCell);
+  } else writeRenovation(wb.addWorksheet("見積書"), p, cats);
+  writePropertySheet(wb.addWorksheet("物件情報"), p);
   return wb.xlsx.writeBuffer();
 }
 
-// 「見積書」シート: ヘッダ → 大項目の一覧 → 調整費 → 合計 → 大項目ごとの内訳と小計
-function writeEstimateSheet(wb, p, cats) {
-  const ws = wb.addWorksheet("見積書", {
-    views: [{ state: "frozen", ySplit: 3 }],
-    pageSetup: { paperSize: 9, orientation: "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: "3:3" },
-  });
-  COL_WIDTHS.forEach((w, i) => (ws.getColumn(i + 1).width = w));
-
-  const put = (row, col, value = null, { bold = false, fmt, fill, align } = {}) => {
-    const cell = ws.getCell(row, col);
-    cell.value = value;
+// 見積シートへ書き込む小さな道具
+function makeSheet(ws, lay) {
+  lay.widths.forEach((w, i) => (ws.getColumn(i + 1).width = w));
+  const put = (row, key, value = null, { bold = false, fmt, align, formula } = {}) => {
+    const c = typeof key === "string" ? lay.cols[key] : key;
+    const cell = ws.getCell(row, c);
+    cell.value = formula != null ? { formula } : value;
     cell.font = xfont(11, bold);
     if (fmt) cell.numFmt = fmt;
-    if (fill) cell.fill = fill;
-    if (align) cell.alignment = { horizontal: align };
+    cell.alignment = { horizontal: align || ALIGN[key] || "left", vertical: "middle" };
     return cell;
   };
-  // 1行分の罫線。line=THIN で上下を実線にする(ヘッダ・合計・小計)
-  const rule = (row, line = HAIR) => {
-    for (let c = 1; c <= LAST_COL; c++)
+  // 1行分の罫線(見本は全セルが細い実線)と行の高さ
+  const grid = (row, height = 21) => {
+    for (let c = 1; c <= lay.last; c++)
       ws.getCell(row, c).border = {
-        left: RULED_COLS.includes(c) ? THIN : undefined,
-        right: c === LAST_COL || RULED_COLS.includes(c + 1) ? THIN : undefined,
-        top: line, bottom: line,
+        top: THIN, bottom: THIN,
+        left: lay.spacers.includes(c) ? undefined : THIN,
+        right: lay.spacers.includes(c + 1) ? undefined : THIN,
       };
+    ws.getRow(row).height = height;
   };
-
-  // ---- タイトル・宛先 ----
-  const title = put(1, COL.name, `${p.customer_name || "お名前"} 様邸${p.work_title || "リノベーション工事"} 見積書`);
-  title.font = xfont(14, true); ws.getRow(1).height = 24;
-  put(2, COL.name, p.vendor_name ? `${p.vendor_name} 御中` : "");
-  ws.mergeCells(2, COL.price, 2, LAST_COL);
-  put(2, COL.price, p.company_name || "", { align: "right" });
-
-  // ---- 見出し行 ----
-  const headRow = 3;
-  rule(headRow, THIN);
-  for (let c = 1; c <= LAST_COL; c++) ws.getCell(headRow, c).fill = HEADER_FILL;
-  const headings = { [COL.no]: "No.", [COL.name]: "名　　　称", [COL.spec]: "仕　　　様", [COL.qty]: "数量",
-    [COL.unit]: "単位", [COL.price]: "単　価", [COL.amount]: "金　額", [COL.note]: "摘　要" };
-  for (const [c, text] of Object.entries(headings))
-    put(headRow, +c, text, { bold: true }).alignment = { horizontal: "center", vertical: "middle" };
-  [COL.qty, COL.price, COL.amount].forEach(c => ws.mergeCells(headRow, c, headRow, c + 1)); // 右隣の余白列と結合
-
-  // ---- 大項目の一覧(金額はあとで各小計への参照を入れる) ----
-  let row = headRow + 1;
-  put(row++, COL.no, "（内　訳　明　細）");
-  const summaryRows = [];
-  cats.forEach((cat, i) => {
-    put(row, COL.no, i + 1); put(row, COL.name, cat.name); put(row, COL.qty, 1); put(row, COL.unit, "式");
-    rule(row); summaryRows.push(row); row++;
-  });
-
-  const adjRow = row + 1;
-  put(adjRow, COL.name, "調整費");
-  put(adjRow, COL.amount, null, { fmt: "#,##0;[Red]-#,##0", fill: INPUT_FILL });
-  rule(adjRow);
-
-  const totalRow = adjRow + 2;
-  put(totalRow, COL.name, "合　計", { bold: true });
-  rule(totalRow, THIN);
-
-  // ---- 大項目ごとの内訳 ----
-  row = totalRow + 2;
-  const subtotalRows = [];
-  cats.forEach((cat, i) => {
-    put(row++, COL.no, "（内　訳　明　細）");
-    put(row, COL.no, i + 1, { bold: true }); put(row, COL.name, cat.name, { bold: true });
-    rule(row); row++;
-
-    const first = row;
-    for (const it of cat.items) { writeItemRow(put, row, it); rule(row); row++; }
-
-    put(row, COL.name, "小　計", { bold: true });
-    // 項目が0件のとき SUM(I{first}:I{first-1}) は小計セル自身を含む循環参照になるので 0 にする
-    const subtotal = row > first ? { formula: `SUM(${AMOUNT}${first}:${AMOUNT}${row - 1})` } : 0;
-    put(row, COL.amount, subtotal, { bold: true, fmt: MONEY });
-    rule(row, THIN); subtotalRows.push(row); row += 2;
-  });
-
-  // 一覧の金額 = 各小計、合計 = 一覧の合計 + 調整費
-  summaryRows.forEach((r, i) => put(r, COL.amount, { formula: `${AMOUNT}${subtotalRows[i]}` }, { fmt: MONEY }));
-  put(totalRow, COL.amount,
-    { formula: `SUM(${AMOUNT}${summaryRows[0]}:${AMOUNT}${summaryRows[summaryRows.length - 1]})+N(${AMOUNT}${adjRow})` },
-    { bold: true, fmt: MONEY });
+  const detailHeader = row => { grid(row); ws.mergeCells(row, 1, row, lay.last); put(row, "no", DETAIL, { bold: true, align: "left" }); };
+  const item = (row, it, money) => {
+    grid(row);
+    if (it.group) { put(row, "name", it.name, { bold: true }); return; }
+    const p = colL(lay.cols.price), q = colL(lay.cols.qty);
+    put(row, "name", it.name);
+    put(row, "spec", it.spec || null);
+    put(row, "qty", nq(it.qty), { align: "right" });
+    put(row, "unit", it.unit || null, { align: "center" });
+    put(row, "price", null, { fmt: money, align: "right" }); // 単価: 業者が入力
+    put(row, "amount", null, { fmt: money, align: "right", formula: `IF(${p}${row}="","",ROUND(${q}${row}*${p}${row},0))` });
+    put(row, "note", it.note || null);
+  };
+  const head = (row, titleText, company, vendor) => {
+    ws.getRow(1).height = 30;
+    const t = ws.getCell(1, 2); t.value = titleText; t.font = xfont(16, true); t.alignment = { vertical: "middle" };
+    ws.getRow(2).height = 21;
+    if (vendor) put(2, "name", `${vendor} 御中`);
+    if (company) { ws.mergeCells(2, lay.cols.price, 2, lay.last); put(2, "price", company, { align: "right" }); }
+    grid(row);
+    for (const [k, text] of Object.entries(HEAD)) put(row, k, text, { bold: true, align: "center" });
+    for (const k of ["qty", "price", "amount"]) if (lay.spacers.includes(lay.cols[k] + 1)) ws.mergeCells(row, lay.cols[k], row, lay.cols[k] + 1);
+  };
+  return { put, grid, detailHeader, item, head };
 }
 
-// 内訳の1行。見出し(【 】)は名称だけを太字で書く
-function writeItemRow(put, row, it) {
-  if (it.group) { put(row, COL.name, it.name, { bold: true }); return; }
-  put(row, COL.name, it.name);
-  put(row, COL.spec, it.spec || null);
-  put(row, COL.qty, nq(it.qty), { fmt: "#,##0.##", align: "right" });
-  put(row, COL.unit, it.unit || null, { align: "center" });
-  put(row, COL.price, null, { fmt: MONEY, fill: INPUT_FILL }); // 単価: 業者が入力
-  put(row, COL.amount, { formula: `IF(G${row}="","",ROUND(D${row}*G${row},0))` }, { fmt: MONEY });
-  put(row, COL.note, it.note || null, { fill: INPUT_FILL });
+const titleOf = (p, fmt) => `${p.customer_name || "〇〇"} 様邸${SEP}${p.work_title || DEFAULT_TITLE[fmt]}${SEP}見積書`;
+
+function pageSetup(ws, orientation, lastCol, lastRow, titleRow) {
+  const m = orientation === "landscape" ? 0.4 : 0.7;
+  ws.pageSetup = {
+    paperSize: 9, orientation, fitToPage: true, fitToWidth: 1, fitToHeight: 0,
+    horizontalCentered: true, margins: { left: m, right: m, top: 0.5, bottom: 0.75, header: 0.3, footer: 0.3 },
+    printArea: `A1:${colL(lastCol)}${lastRow}`, printTitlesRow: `${titleRow}:${titleRow}`,
+  };
+}
+
+// リノベーション工事「見積書」シート: ヘッダ → 大項目の一覧 → 調整費 → 合計 → 大項目ごとの内訳と小計
+function writeRenovation(ws, p, cats) {
+  const money = "#,##0\\円", lay = LAYOUTS.renovation, s = makeSheet(ws, lay);
+  s.head(3, titleOf(p, "renovation"), p.company_name, p.vendor_name);
+
+  s.detailHeader(4);
+  let row = 5; const summaryRows = [];
+  cats.forEach((cat, i) => {
+    s.grid(row); s.put(row, "no", i + 1); s.put(row, "name", cat.name); s.put(row, "qty", 1, { align: "right" }); s.put(row, "unit", "式", { align: "center" });
+    summaryRows.push(row); row++;
+  });
+  s.grid(row);
+  const adjRow = row + 1; s.grid(adjRow); s.put(adjRow, "name", "調整費"); s.put(adjRow, "amount", null, { fmt: money, align: "right" });
+  s.grid(adjRow + 1);
+  const totalRow = adjRow + 2; s.grid(totalRow); s.put(totalRow, "name", `合${SEP}計`, { bold: true });
+
+  row = totalRow + 2; const subtotalRows = [];
+  cats.forEach((cat, i) => {
+    s.detailHeader(row++);
+    s.grid(row); s.put(row, "no", i + 1, { bold: true }); s.put(row, "name", cat.name, { bold: true }); row++;
+    const first = row;
+    for (const it of cat.items) s.item(row++, it, money);
+    s.grid(row); s.put(row, "name", `小${SEP}計`, { bold: true });
+    // 項目が0件のとき SUM(G{first}:G{first-1}) は小計セル自身を含む循環参照になるので 0 にする
+    if (row > first) s.put(row, "amount", null, { bold: true, fmt: money, align: "right", formula: `SUM(G${first}:G${row - 1})` });
+    else s.put(row, "amount", 0, { bold: true, fmt: money, align: "right" });
+    subtotalRows.push(row); row += 2;
+  });
+
+  summaryRows.forEach((r, i) => s.put(r, "amount", null, { fmt: money, align: "right", formula: `G${subtotalRows[i]}` }));
+  if (summaryRows.length) s.put(totalRow, "amount", null, { bold: true, fmt: money, align: "right", formula: `SUM(G${summaryRows[0]}:G${summaryRows[summaryRows.length - 1]})+N(G${adjRow})` });
+  ws.views = [{ state: "frozen", ySplit: 3 }];
+  pageSetup(ws, "portrait", lay.last, row - 2, 3);
+}
+
+// 水回りリフォーム「見積もり内訳」シート: ヘッダ → 大項目ごとの内訳と小計 → 大項目の一覧 → 合計。合計セルの番地を返す
+function writeMizumawari(ws, p, cats) {
+  const money = "#,##0_);[Red](#,##0)", lay = LAYOUTS.mizumawari, s = makeSheet(ws, lay);
+  ws.getColumn(12).width = 14.5; for (let c = 13; c <= 26; c++) ws.getColumn(c).width = 8;
+  s.head(3, titleOf(p, "mizumawari"), p.company_name, p.vendor_name);
+  s.detailHeader(4);
+
+  let row = 5; const subtotalRows = [];
+  cats.forEach((cat, i) => {
+    s.grid(row); s.put(row, "no", i + 1, { bold: true }); s.put(row, "name", cat.name, { bold: true }); row++;
+    const first = row;
+    for (const it of cat.items) s.item(row++, it, money);
+    s.grid(row++); // 業者が項目を書き足せる予備の行(小計に含まれる)
+    s.grid(row); s.put(row, "name", `小${SEP}計`, { bold: true, align: "center" });
+    s.put(row, "amount", null, { bold: true, fmt: money, align: "right", formula: `SUM(I${first}:I${row - 1})` });
+    subtotalRows.push(row++);
+    s.grid(row++);
+  });
+
+  row++;
+  s.detailHeader(row++);
+  const firstSum = row;
+  cats.forEach((cat, i) => {
+    s.grid(row); s.put(row, "no", i + 1); s.put(row, "name", cat.name); s.put(row, "qty", 1, { align: "right" }); s.put(row, "unit", "式", { align: "center" });
+    s.put(row, "amount", null, { fmt: money, align: "right", formula: `I${subtotalRows[i]}` });
+    row++;
+  });
+  s.grid(row++); // 予備の行(諸経費などを書き足せる)
+  s.grid(row); s.put(row, "name", `合${SEP}計`, { bold: true, align: "center" });
+  s.put(row, "amount", null, { bold: true, fmt: money, align: "right", formula: `SUM(I${firstSum}:I${row - 1})` });
+  ws.views = [{ state: "frozen", ySplit: 3 }];
+  pageSetup(ws, "landscape", lay.last, row, 3);
+  return `I${row}`;
+}
+
+// 表紙。御見積金額は見積もり内訳の合計を参照する(単価が入ると金額が出る)
+const COVER_WIDTHS = [...Array(20).fill(3.66), 5.16, ...Array(9).fill(3.66), ...Array(4).fill(3.5), ...Array(3).fill(3.66), 9];
+const COVER_HEIGHTS = { 1: 18, 2: 18, 3: 39, 4: 11.25, 5: 18, 6: 19.5, 7: 31.5, 8: 12.75, 9: 15.75, 10: 18, 11: 18, 12: 21.75, 13: 19.5, 14: 12, 15: 19.5, 16: 22.5, 17: 18, 18: 18, 19: 18, 20: 18, 21: 15, 22: 18, 23: 15, 24: 18, 25: 15, 26: 18, 27: 15, 28: 18, 29: 14.25, 30: 18, 31: 18 };
+function writeCover(ws, p, totalCell) {
+  COVER_WIDTHS.forEach((w, i) => (ws.getColumn(i + 1).width = w));
+  Object.entries(COVER_HEIGHTS).forEach(([r, h]) => (ws.getRow(+r).height = h));
+  const put = (addr, value = null, { size = 12, bold = false, h = "left", v, fmt, merge, formula, name = XFONT } = {}) => {
+    if (merge) ws.mergeCells(merge);
+    const c = ws.getCell(addr);
+    c.value = formula != null ? { formula } : value;
+    c.font = xfont(size, bold, name);
+    c.alignment = { horizontal: h, vertical: v };
+    if (fmt) c.numFmt = fmt;
+    return c;
+  };
+  put("A1", `御${SEP}見${SEP}積${SEP}書`, { size: 24, bold: true, h: "center", merge: "A1:AJ3" });
+  const now = new Date();
+  put("AC5", `令和${now.getFullYear() - 2018}`, { h: "right", v: "middle", merge: "AC5:AD5" });
+  put("AE5", "年", { v: "middle" }); put("AF5", now.getMonth() + 1, { h: "right", v: "middle" });
+  put("AG5", "月", { v: "middle" }); put("AH5", now.getDate(), { h: "right", v: "middle" }); put("AI5", "日", { v: "middle" });
+  put("B7", `${p.customer_name || ""}${SEP}様`, { size: 18, merge: "B7:N7" });
+
+  put("C10", "御見積金額 ", { size: 22, h: "center", merge: "C10:J11" });
+  put("K10", "￥", { size: 22, h: "center", merge: "K10:K11" });
+  put("L10", null, { size: 22, h: "center", merge: "L10:U11", fmt: "[DBNum3][$-411]#,##0", formula: "H13+S13" });
+  put("V10", "円", { size: 22, h: "center", merge: "V10:W11" });
+  for (let c = 3; c <= 23; c++) ws.getCell(11, c).border = { bottom: THIN };
+  put("C13", "内訳"); put("E13", "工事金額 ");
+  const yen = "\"¥\"#,##0;[Red]\"¥\"\\-#,##0";
+  put("H13", null, { size: 14, h: "center", merge: "H13:L13", fmt: yen, formula: `'見積もり内訳'!${totalCell}` });
+  put("O13", "消費税相当額", { h: "center", merge: "O13:R13" });
+  put("S13", null, { size: 14, h: "center", merge: "S13:V13", fmt: yen, formula: "H13*0.1" });
+  put("H15", " 上記の通り御見積申し上げます。", { size: 14, h: "center", merge: "H15:S15" });
+
+  // 検印欄
+  [[26, "検印"], [29, "検印"], [32, "作成者"]].forEach(([li, label]) => {
+    const a = colL(li), b = colL(li + 2);
+    put(`${a}18`, label, { size: 11, h: "center", merge: `${a}18:${b}18` });
+    ws.mergeCells(`${a}19:${b}21`);
+    for (let r = 18; r <= 21; r++) for (let c = li; c <= li + 2; c++)
+      ws.getCell(r, c).border = { left: c === li ? THIN : undefined, right: c === li + 2 ? THIN : undefined, top: r <= 19 ? THIN : undefined, bottom: r === 18 || r === 21 ? THIN : undefined };
+  });
+
+  const remarks = p.remarks || "";
+  [[20, "工事名", p.work_title || DEFAULT_TITLE.mizumawari, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", p.work_period, "F24:O24"],
+   [26, "決済条件", null, "F26:O26"], [28, "有効期限", null, "F28:O28"], [30, "備考", remarks || null, "F30:O30"]].forEach(([r, label, value, rng]) => {
+    put(`B${r}`, label, { h: "center", v: "middle", merge: `B${r}:D${r}` });
+    put(`F${r}`, value || null, { h: "left", v: "middle", merge: rng });
+  });
+  if (remarks.length > 24) { // 備考が長いときは行を高くして折り返す
+    ws.getRow(30).height = Math.min(18 * (Math.floor(remarks.length / 24) + 1), 160);
+    ws.getCell("F30").alignment = { horizontal: "left", vertical: "top", wrapText: true };
+  }
+  if (p.company_name) put("Y24", p.company_name, { size: 18, bold: true, h: "center", v: "middle", merge: "Y24:AJ25", name: "HG丸ｺﾞｼｯｸM-PRO" });
+
+  ws.pageSetup = { paperSize: 9, orientation: "landscape", fitToPage: true, fitToWidth: 1, fitToHeight: 1, horizontalCentered: true,
+    margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.75, header: 0.3, footer: 0.3 }, printArea: "A1:AJ31" };
 }
 
 // 「物件情報」シート
-function writePropertySheet(wb, p) {
-  const ps = wb.addWorksheet("物件情報");
-  ps.getColumn(1).width = 22; ps.getColumn(2).width = 40;
-  ps.getCell(1, 1).value = "物件情報（見積条件）"; ps.getCell(1, 1).font = xfont(14, true);
-  const u = (v, unit) => (v == null || v === "" ? null : `${nq(v)} ${unit}`);
+function writePropertySheet(ps, p) {
+  ps.getColumn(1).width = 22; ps.getColumn(2).width = 48;
+  ps.getCell(1, 1).value = "物件情報（見積条件）"; ps.getCell(1, 1).font = xfont(16, true);
   const rows = [
-    ["お客様名", p.customer_name], ["工事名", p.work_title], ["物件所在地", p.address], ["構造", p.structure],
+    ["お客様名", p.customer_name], ["工事名", p.work_title], ["物件所在地", p.address], ["構造・工法", p.structure],
     ["依頼元", p.company_name], ["提出先（業者）", p.vendor_name], ["見積提出期限", p.due_date], ["工事希望時期", p.work_period],
-    ["階数", FLOOR_LABEL[p.floors]],
-    ["延床面積", u(p.total_area, "㎡")], ["延床面積（坪）", u(p.tsubo, "坪")],
-    ["1階床面積", u(p.floor1_area, "㎡")], ["2階床面積", u(p.floor2_area, "㎡")], ["3階床面積", u(p.floor3_area, "㎡")],
-    ["屋根面積", u(p.roof_area, "㎡")], ["外壁面積", u(p.wall_area, "㎡")], ["足場面積", u(p.scaffold_area, "㎡")],
-    ["トイレ数", u(p.toilet_count, "ヶ所")], ["備考・特記事項", p.remarks],
+    ["階数", FLOOR_LABEL[p.floors]], ["水回りの範囲", p.plumbing], ["備考・特記事項", p.remarks],
   ];
   const box = { left: THIN, right: THIN, top: THIN, bottom: THIN };
   rows.forEach(([label, value], i) => {
-    const a = ps.getCell(i + 3, 1), b = ps.getCell(i + 3, 2);
-    a.value = label; a.font = xfont(11, true); a.fill = HEADER_FILL; a.border = box;
-    b.value = value || null; b.font = xfont(); b.alignment = { wrapText: true, vertical: "top" }; b.border = box;
+    const r = i + 3, a = ps.getCell(r, 1), b = ps.getCell(r, 2);
+    a.value = label; a.font = xfont(11, true); a.border = box; a.alignment = { vertical: "middle" };
+    b.value = value || null; b.font = xfont(); b.alignment = { wrapText: true, vertical: r === 13 ? "top" : "middle" }; b.border = box;
+    ps.getRow(r).height = r === 13 ? 63 : 21;
   });
   const note = ps.getCell(rows.length + 4, 1);
-  note.value = "※ 黄色のセル（単価・摘要）をご記入ください。金額・小計・合計は自動計算されます。"; note.font = xfont();
+  note.value = "※ 単価・摘要をご記入ください。金額・小計・合計は自動計算されます。"; note.font = xfont(10);
 }
 
 // ---- Excelを出力(単体HTML版) ----

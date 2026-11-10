@@ -40,17 +40,9 @@ extra_css = """
 @media (max-width:1180px){.summary{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
 """
 
-seed = """
-// 例として入れておく数値(サンプル)
-for (const [k, v] of Object.entries({ floor1_area: 63.6, floor2_area: 33, roof_area: 83, wall_area: 123.3, scaffold_area: 360, toilet_count: 2, cloth_len: 670 })) {
-  const el = document.querySelector(`[data-n=${k}]`);
-  if (el) { el.value = v; el.dispatchEvent(new Event("input", { bubbles: true })); }
-}
-"""
-
-out = f"""<title>見積依頼書ジェネレーター</title>
+out = f"""<title>TSUMIKI</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap">
 <style>
 {css}
 {extra_css}
@@ -60,7 +52,6 @@ out = f"""<title>見積依頼書ジェネレーター</title>
 <script>
 const CATALOG = {catalog};
 {js}
-{seed}
 </script>
 """
 (HERE / "dist").mkdir(exist_ok=True)
