@@ -12,6 +12,6 @@ export type CatalogData = { categories: Category[]; presets?: Preset[]; plumbing
 export type Structure = "wood" | "steel" | "rc";
 export type Floors = 1 | 2 | 3;
 export type Prop = {
-  customer_name: string; work_title: string; address: string; company_name: string;
+  customer_company: string; customer_name: string; address: string; start_date: string; end_date: string;
   work_period: string; due_date: string; remarks: string;
 };

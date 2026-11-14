@@ -7,8 +7,9 @@ import {
   API, FLOOR_LABEL, FORMATS, ICONS, STRUCT, hasFixtureItems, needsQty, plumbingLabel, sameSet, visible, visibleItems, type Cond,
 } from "@/lib/domain";
 
+const COMPANY = "株式会社石丸ハウスセンター"; // 依頼元(自社名)は画面では入力しない
 const EMPTY: Prop = {
-  customer_name: "", work_title: "リノベーション工事", address: "", company_name: "株式会社石丸ハウスセンター",
+  customer_company: "", customer_name: "", address: "", start_date: "", end_date: "",
   work_period: "", due_date: "", remarks: "",
 };
 
@@ -96,11 +97,10 @@ export default function Estimator() {
     const n = [...its]; [n[j], n[i]] = [n[i], n[j]]; return n;
   });
 
-  // 形式を切り替える。工事名が初期値のままなら、形式に合う初期値に直す
+  // 種類を切り替える。その種類の大項目を選ぶ
   const changeFormat = (k: ExcelFormat) => {
     const p = presets.find(x => x.format === k);
     if (p) setSelected(new Set(p.ids));
-    setProp(p => (Object.values(FORMATS).some(f => f.title === p.work_title.trim()) ? { ...p, work_title: FORMATS[k].title } : p));
     setFixturesOn(new Set(plumbing.fixtures.map(f => f.key))); // 設備は、種類を変えるたびにすべて対象に戻す
     setFormat(k);
   };
@@ -109,7 +109,7 @@ export default function Estimator() {
 
   // ---- 出力するデータ(バックエンドの ExportRequest と同じ形) ----
   const exportData = () => ({
-    property: { ...prop, floors, structure: STRUCT[structure], plumbing: plLabel, format },
+    property: { ...prop, company_name: COMPANY, floors, structure: STRUCT[structure], plumbing: plLabel, format },
     categories: cats.map(c => ({
       name: c.name,
       items: c.items.filter(i => i.name.trim() && visible(i, cond)).map(i => ({
@@ -143,7 +143,6 @@ export default function Estimator() {
     } catch (err) { alert("保存に失敗しました: " + (err instanceof Error ? err.message : err)); }
   }
 
-  const title = prop.customer_name.trim() ? `${prop.customer_name.trim()} 様邸 ${prop.work_title.trim()}` : "新規の見積依頼";
   const field = (k: keyof Prop, label: string, extra: React.InputHTMLAttributes<HTMLInputElement> = {}, cls = "") => (
     <label className={cls}>{label}<input value={prop[k]} onChange={setP(k)} {...extra} /></label>
   );
@@ -153,32 +152,34 @@ export default function Estimator() {
       <aside className="side">
         <div className="brand">
           <svg className="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#3b4533" /><rect x="5" y="17" width="10" height="10" rx="2" fill="#a9d46a" /><rect x="17" y="17" width="10" height="10" rx="2" fill="#a9d46a" /><rect x="11" y="5" width="10" height="10" rx="2" fill="#a9d46a" /></svg>
-          <div><b>TSUMIKI</b><small>ESTIMATE BUILDER</small></div>
+          <div><b>TSUMIKI</b></div>
         </div>
         <nav id="nav">
           {[["property", "1", "物件情報", structLabel], ["works", "2", "工事の選択", `${cats.length}工事を選択`], ["detail", "3", "内訳の確認", `${items.length}項目`]].map(([id, n, t, s]) => (
             <a key={id} href={`#${id}`} className={active === id ? "on" : ""}><i>{n}</i><span>{t}<small>{s}</small></span></a>
           ))}
         </nav>
-        <p className="sidenote">単価は業者が入力します。<br />金額・小計・合計は自動計算されます。</p>
       </aside>
 
       <div className="content">
         <header className="top">
-          <div className="crumb"><span>見積依頼</span><span className="sep">/</span><b>{title}</b></div>
-          <div className="chips">
-            <span className="chip">{STRUCT[structure]}</span><span className="chip">{FLOOR_LABEL[floors]}</span>
-          </div>
+          <div className="crumb"><b>新規の見積依頼</b></div>
         </header>
 
         <main>
           <section className="card" id="property">
-            <div className="card-h"><h2>物件情報</h2><span>見積依頼の基本条件</span></div>
+            <div className="card-h"><h2>物件情報</h2></div>
             <div className="grid">
-              {field("customer_name", "お客様名", { placeholder: "例: 山田太郎" })}
-              {field("work_title", "工事名")}
-              {field("address", "物件所在地", { placeholder: "例: 札幌市中央区…" }, "wide")}
-              {field("company_name", "依頼元（自社名）")}
+              <div className="wide pair">
+                <span className="gl">お施主様名</span>
+                <div className="two">
+                  {field("customer_company", "法人の名称", { placeholder: "例: 株式会社〇〇" })}
+                  {field("customer_name", "個人の名前", { placeholder: "例: 山田太郎" })}
+                </div>
+              </div>
+              {field("address", "物件所在地", { placeholder: "例: 名古屋市中区…" }, "wide")}
+              {field("start_date", "着工予定日", { type: "date" })}
+              {field("end_date", "完工予定日", { type: "date" })}
               {field("work_period", "工事希望時期", { placeholder: "例: 2026年12月〜" })}
               {field("due_date", "見積提出期限", { type: "date" })}
             </div>
@@ -201,15 +202,15 @@ export default function Estimator() {
               </div>
             </div>
             <p className="hint">構造と階数に合わせて、工事内訳が絞り込まれます。数量は、内訳の表で直接入力します。</p>
-            <label className="wide block">備考・特記事項（業者への伝達事項）
+            <label className="wide block">備考・特記事項（お取引先への伝達事項）
               <textarea rows={3} value={prop.remarks} onChange={setP("remarks")} placeholder="搬入経路、工事時間の制限、既存設備の状況など" />
             </label>
           </section>
 
           <section className="card" id="works">
-            <div className="card-h"><h2>工事の選択</h2><span>種類を選んでから、カードで微調整できます</span></div>
+            <div className="card-h"><h2>工事の選択</h2></div>
             <div className="fmt">
-              <div className="plumb-h"><b>工事の種類（Excelの形式）</b><span>選ぶと、その種類の工事が選ばれ、Excelの形も切り替わります。下のカードで微調整できます</span></div>
+              <div className="plumb-h"><b>工事の種類</b><span>選択した種類に応じて、Excelの出力形式が替わります。</span></div>
               <div className="seg">
                 {(Object.keys(FORMATS) as ExcelFormat[]).map(k => (
                   <button key={k} type="button" className={k === format ? "on" : ""} onClick={() => changeFormat(k)}>{FORMATS[k].name}</button>

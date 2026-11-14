@@ -79,7 +79,13 @@ function makeSheet(ws, lay) {
   return { put, grid, detailHeader, item, head };
 }
 
-const titleOf = (p, fmt) => `${p.customer_name || "〇〇"} 様邸${SEP}${p.work_title || DEFAULT_TITLE[fmt]}${SEP}見積書`;
+// お施主様名。法人の名称と個人の名前の両方があれば、続けて書く
+const ownerOf = p => [p.customer_company, p.customer_name].filter(Boolean).join(" ");
+// 2026-11-14 → 2026年11月14日。日付の形でなければそのまま返す
+const dateJp = v => { const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(v || ""); return m ? `${+m[1]}年${+m[2]}月${+m[3]}日` : (v || null); };
+// 工期。着工予定日〜完工予定日。どちらもなければ工事希望時期
+const termOf = p => (p.start_date || p.end_date ? `${dateJp(p.start_date) || ""} 〜 ${dateJp(p.end_date) || ""}`.trim() : (p.work_period || null));
+const titleOf = (p, fmt) => `${ownerOf(p) || "〇〇"} 様邸${SEP}${DEFAULT_TITLE[fmt]}${SEP}見積書`;
 
 function pageSetup(ws, orientation, lastCol, lastRow, titleRow) {
   const m = orientation === "landscape" ? 0.4 : 0.7;
@@ -180,7 +186,7 @@ function writeCover(ws, p, totalCell) {
   put("AC5", `令和${now.getFullYear() - 2018}`, { h: "right", v: "middle", merge: "AC5:AD5" });
   put("AE5", "年", { v: "middle" }); put("AF5", now.getMonth() + 1, { h: "right", v: "middle" });
   put("AG5", "月", { v: "middle" }); put("AH5", now.getDate(), { h: "right", v: "middle" }); put("AI5", "日", { v: "middle" });
-  put("B7", `${p.customer_name || ""}${SEP}様`, { size: 18, merge: "B7:N7" });
+  put("B7", `${ownerOf(p)}${SEP}様`, { size: 18, merge: "B7:N7" });
 
   put("C10", "御見積金額 ", { size: 22, h: "center", merge: "C10:J11" });
   put("K10", "￥", { size: 22, h: "center", merge: "K10:K11" });
@@ -204,7 +210,7 @@ function writeCover(ws, p, totalCell) {
   });
 
   const remarks = p.remarks || "";
-  [[20, "工事名", p.work_title || DEFAULT_TITLE.mizumawari, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", p.work_period, "F24:O24"],
+  [[20, "工事名", DEFAULT_TITLE.mizumawari, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", termOf(p), "F24:O24"],
    [26, "決済条件", null, "F26:O26"], [28, "有効期限", null, "F28:O28"], [30, "備考", remarks || null, "F30:O30"]].forEach(([r, label, value, rng]) => {
     put(`B${r}`, label, { h: "center", v: "middle", merge: `B${r}:D${r}` });
     put(`F${r}`, value || null, { h: "left", v: "middle", merge: rng });
@@ -224,16 +230,16 @@ function writePropertySheet(ps, p) {
   ps.getColumn(1).width = 22; ps.getColumn(2).width = 48;
   ps.getCell(1, 1).value = "物件情報（見積条件）"; ps.getCell(1, 1).font = xfont(16, true);
   const rows = [
-    ["お客様名", p.customer_name], ["工事名", p.work_title], ["物件所在地", p.address], ["構造・工法", p.structure],
-    ["依頼元", p.company_name], ["見積提出期限", p.due_date], ["工事希望時期", p.work_period],
+    ["お施主様名（法人の名称）", p.customer_company], ["お施主様名（個人の名前）", p.customer_name], ["物件所在地", p.address], ["構造・工法", p.structure],
+    ["着工予定日", dateJp(p.start_date)], ["完工予定日", dateJp(p.end_date)], ["見積提出期限", dateJp(p.due_date)], ["工事希望時期", p.work_period],
     ["階数", FLOOR_LABEL[p.floors]], ["水回りの範囲", p.plumbing], ["備考・特記事項", p.remarks],
   ];
   const box = { left: THIN, right: THIN, top: THIN, bottom: THIN };
   rows.forEach(([label, value], i) => {
     const r = i + 3, a = ps.getCell(r, 1), b = ps.getCell(r, 2);
     a.value = label; a.font = xfont(11, true); a.border = box; a.alignment = { vertical: "middle" };
-    b.value = value || null; b.font = xfont(); b.alignment = { wrapText: true, vertical: r === 12 ? "top" : "middle" }; b.border = box;
-    ps.getRow(r).height = r === 12 ? 63 : 21;
+    b.value = value || null; b.font = xfont(); b.alignment = { wrapText: true, vertical: r === rows.length + 2 ? "top" : "middle" }; b.border = box;
+    ps.getRow(r).height = r === rows.length + 2 ? 63 : 21;
   });
   const note = ps.getCell(rows.length + 4, 1);
   note.value = "※ 単価・摘要をご記入ください。金額・小計・合計は自動計算されます。"; note.font = xfont(10);
@@ -246,7 +252,7 @@ $("#export").addEventListener("click", async () => {
   btn.disabled = true; btn.textContent = "作成中…";
   try {
     const buf = await buildXlsx(data);
-    const filename = [p.customer_name || "お客様", p.work_title, "見積依頼書"].filter(Boolean).join("_") + ".xlsx";
+    const filename = [p.customer_company, p.customer_name, "見積依頼書"].filter(Boolean).join("_") + ".xlsx";
     // claude.ai 上の公開ページでは保存機能(downloads)を使い、通常のWebサイトでは通常のダウンロードにする
     const downloads = window.claude && claude.use ? await claude.use("downloads").catch(() => null) : null;
     if (downloads) await downloads.save({ filename, data: buf });

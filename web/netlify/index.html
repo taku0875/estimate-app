@@ -61,6 +61,8 @@ h2::before{counter-increment:sec;content:counter(sec);width:26px;height:26px;bor
 h3{margin:22px 0 8px;font-size:13px;font-weight:700}
 h3 small{color:var(--sub);font-weight:400;font-size:12px;margin-left:6px}
 .hint{margin:10px 0 0;color:var(--sub);font-size:12px}
+.gl{font-size:12px;color:var(--sub);font-weight:500;display:block;margin-bottom:5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px 16px}
 .wide{grid-column:1/-1}.block{display:flex;margin-top:18px}
 .split{display:flex;gap:36px;flex-wrap:wrap;margin-top:6px}
@@ -175,6 +177,7 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
   #nav{flex-direction:row}
   #nav a{padding:6px 10px;white-space:nowrap}
   .top{padding:12px 16px;top:0}
+  .two{grid-template-columns:1fr}
   main{padding:16px 16px 96px}
   .banner{margin:12px 16px 0}
   .card{padding:16px}.card-h{margin:-16px -16px 16px;padding:12px 16px}
@@ -200,31 +203,35 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
   <aside class="side">
     <div class="brand">
       <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#3b4533"/><rect x="5" y="17" width="10" height="10" rx="2" fill="#a9d46a"/><rect x="17" y="17" width="10" height="10" rx="2" fill="#a9d46a"/><rect x="11" y="5" width="10" height="10" rx="2" fill="#a9d46a"/></svg>
-      <div><b>TSUMIKI</b><small>ESTIMATE BUILDER</small></div>
+      <div><b>TSUMIKI</b></div>
     </div>
     <nav id="nav">
       <a href="#property" class="on"><i>1</i><span>物件情報<small id="navP"></small></span></a>
       <a href="#works"><i>2</i><span>工事の選択<small id="navW"></small></span></a>
       <a href="#detail"><i>3</i><span>内訳の確認<small id="navD"></small></span></a>
     </nav>
-    <p class="sidenote">単価は業者が入力します。<br>金額・小計・合計は自動計算されます。</p>
   </aside>
 
   <div class="content">
     <header class="top">
-      <div class="crumb"><span>見積依頼</span><span class="sep">/</span><b id="topTitle">新規の見積依頼</b></div>
-      <div class="chips" id="topChips"></div>
+      <div class="crumb"><b>新規の見積依頼</b></div>
     </header>
     <p class="banner" id="sampleNote">サンプル版です。入力内容は保存されません。</p>
 
     <main>
       <section class="card" id="property">
-        <div class="card-h"><h2>物件情報</h2><span>見積依頼の基本条件</span></div>
+        <div class="card-h"><h2>物件情報</h2></div>
         <div class="grid">
-          <label>お客様名<input data-k="customer_name" placeholder="例: 山田太郎"></label>
-          <label>工事名<input data-k="work_title" value="リノベーション工事"></label>
-          <label class="wide">物件所在地<input data-k="address" placeholder="例: 札幌市中央区…"></label>
-          <label>依頼元（自社名）<input data-k="company_name" value="株式会社石丸ハウスセンター"></label>
+          <div class="wide pair">
+            <span class="gl">お施主様名</span>
+            <div class="two">
+              <label>法人の名称<input data-k="customer_company" placeholder="例: 株式会社〇〇"></label>
+              <label>個人の名前<input data-k="customer_name" placeholder="例: 山田太郎"></label>
+            </div>
+          </div>
+          <label class="wide">物件所在地<input data-k="address" placeholder="例: 名古屋市中区…"></label>
+          <label>着工予定日<input type="date" data-k="start_date"></label>
+          <label>完工予定日<input type="date" data-k="end_date"></label>
           <label>工事希望時期<input data-k="work_period" placeholder="例: 2026年12月〜"></label>
           <label>見積提出期限<input type="date" data-k="due_date"></label>
         </div>
@@ -249,13 +256,13 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
         </div>
         <p class="hint">構造と階数に合わせて、工事内訳が絞り込まれます。数量は、内訳の表で直接入力します。</p>
 
-        <label class="wide block">備考・特記事項（業者への伝達事項）<textarea data-k="remarks" rows="3" placeholder="搬入経路、工事時間の制限、既存設備の状況など"></textarea></label>
+        <label class="wide block">備考・特記事項（お取引先への伝達事項）<textarea data-k="remarks" rows="3" placeholder="搬入経路、工事時間の制限、既存設備の状況など"></textarea></label>
       </section>
 
       <section class="card" id="works">
-        <div class="card-h"><h2>工事の選択</h2><span>種類を選んでから、カードで微調整できます</span></div>
+        <div class="card-h"><h2>工事の選択</h2></div>
         <div class="fmt">
-          <div class="plumb-h"><b>工事の種類（Excelの形式）</b><span>選ぶと、その種類の工事が選ばれ、Excelの形も切り替わります。下のカードで微調整できます</span></div>
+          <div class="plumb-h"><b>工事の種類</b><span>選択した種類に応じて、Excelの出力形式が替わります。</span></div>
           <div class="seg" id="formats"></div>
         </div>
 
@@ -299,7 +306,7 @@ const CATALOG = {
  "categories": [
   {
    "id": 1,
-   "name": "解体工事",
+   "name": "解体",
    "items": [
     {
      "name": "1階スケルトン解体処分",
@@ -378,7 +385,7 @@ const CATALOG = {
   },
   {
    "id": 2,
-   "name": "基礎工事",
+   "name": "基礎",
    "items": [
     {
      "name": "玄関土間・ポーチ",
@@ -414,7 +421,7 @@ const CATALOG = {
   },
   {
    "id": 3,
-   "name": "木工事",
+   "name": "木工",
    "items": [
     {
      "name": "材木費",
@@ -476,7 +483,7 @@ const CATALOG = {
   },
   {
    "id": 4,
-   "name": "屋根板金工事",
+   "name": "屋根板金",
    "items": [
     {
      "group": true,
@@ -620,7 +627,7 @@ const CATALOG = {
   },
   {
    "id": 5,
-   "name": "内外装工事",
+   "name": "内外装",
    "items": [
     {
      "name": "KMEW ｾﾗﾃﾞｨｰﾙ16･親水ﾊﾟﾜｰｺｰﾄ",
@@ -930,7 +937,7 @@ const CATALOG = {
   },
   {
    "id": 6,
-   "name": "鋼製建具工事",
+   "name": "鋼製建具",
    "items": [
     {
      "name": "AD1 玄関",
@@ -1057,7 +1064,7 @@ const CATALOG = {
   },
   {
    "id": 7,
-   "name": "塗装工事",
+   "name": "塗装",
    "items": [
     {
      "name": "破風板、鼻隠し ｳﾚﾀﾝ系塗装",
@@ -1081,7 +1088,7 @@ const CATALOG = {
   },
   {
    "id": 8,
-   "name": "電気設備工事",
+   "name": "電気設備",
    "items": [
     {
      "group": true,
@@ -1450,7 +1457,7 @@ const CATALOG = {
   },
   {
    "id": 9,
-   "name": "給排水設備工事",
+   "name": "給排水設備",
    "items": [
     {
      "name": "既存器具撤去・外部ﾌﾟﾗｸﾞ止め・排水ｷｬｯﾌﾟ",
@@ -1560,7 +1567,7 @@ const CATALOG = {
   },
   {
    "id": 10,
-   "name": "住宅設備工事",
+   "name": "住宅設備",
    "items": [
     {
      "name": "ｼｽﾃﾑｷｯﾁﾝ",
@@ -1678,7 +1685,7 @@ const CATALOG = {
   },
   {
    "id": 11,
-   "name": "仮設工事",
+   "name": "仮設",
    "items": [
     {
      "name": "仮設足場組",
@@ -1850,6 +1857,7 @@ const openCats = new Set(); // 内訳で開いている大項目 id
 const fixturesOn = new Set(); // 水回りで選択中の設備のキー(kitchen など)
 let structure = "wood";     // 構造(STRUCT のキー)
 let floors = 2;             // 階数
+const COMPANY = "株式会社石丸ハウスセンター";
 let format = "renovation";  // Excelの形式(FORMATS のキー)
 
 // 構造・階数・水回りの範囲に合う項目だけを表示・出力する。fixtures を持つ項目は、そのどれかが選ばれていれば出す
@@ -1906,12 +1914,10 @@ function renderFormats() {
     `<button type="button" data-f="${k}" class="${k === format ? "on" : ""}">${f.name}</button>`).join("");
 }
 
-// 種類を切り替える。その種類の大項目を選び、工事名が初期値のままなら種類に合う初期値に直す
+// 種類を切り替える。その種類の大項目を選び、水回りの設備はすべて対象に戻す
 function setFormat(k) {
-  const t = $("[data-k=work_title]");
-  if (t && Object.values(FORMATS).some(f => f.title === t.value.trim())) t.value = FORMATS[k].title;
   format = k;
-  plumbing.fixtures.forEach(f => fixturesOn.add(f.key)); // 設備は、種類を変えるたびにすべて対象に戻す
+  plumbing.fixtures.forEach(f => fixturesOn.add(f.key));
   const p = presets.find(x => x.format === k);
   if (p) { selected.clear(); p.ids.forEach(id => selected.add(id)); }
   rerender();
@@ -1961,15 +1967,6 @@ function renderDetail() {
   $("#status").textContent = `${cats.length}工事 / ${n}項目 を出力`;
 }
 
-// 上部のタイトルとチップ
-function renderTop() {
-  const g = k => (document.querySelector(`[data-k=${k}]`)?.value || "").trim();
-  const name = g("customer_name");
-  $("#topTitle").textContent = name ? `${name} 様邸 ${g("work_title")}` : "新規の見積依頼";
-  $("#topChips").innerHTML = [STRUCT[structure], FLOOR_LABEL[floors]].map(t => `<span class="chip">${t}</span>`).join("") +
-    "";
-}
-
 // 右側の「出力の内容」と左ナビの補足
 function renderSummary(cats) {
   const items = cats.flatMap(visibleItems);
@@ -1984,7 +1981,6 @@ function renderSummary(cats) {
   $("#navP").textContent = structLabel();
   $("#navW").textContent = `${cats.length}工事を選択`;
   $("#navD").textContent = `${items.length}項目`;
-  renderTop();
 }
 
 function rerender() { renderCats(); renderDetail(); }
@@ -1992,7 +1988,6 @@ function rerender() { renderCats(); renderDetail(); }
 // ---- イベント: 物件情報 ----
 $("#structures").addEventListener("change", e => { structure = e.target.value; rerender(); });
 $("#floors").addEventListener("change", e => { floors = +e.target.value; rerender(); });
-document.addEventListener("input", e => { if (e.target.dataset.k) renderTop(); }); // data-k: 文字の項目(お客様名など)
 
 // ---- イベント: 工事の選択 ----
 $("#formats").addEventListener("click", e => { const k = e.target.dataset.f; if (k) setFormat(k); });
@@ -2064,6 +2059,7 @@ function propertyData() {
   document.querySelectorAll("[data-k]").forEach(el => (p[el.dataset.k] = el.value));
   p.floors = floors;
   p.structure = STRUCT[structure];
+  p.company_name = COMPANY; // 依頼元(自社名)は画面では入力しない
   p.plumbing = plumbingLabel();
   p.format = format;
   return p;
@@ -2162,7 +2158,13 @@ function makeSheet(ws, lay) {
   return { put, grid, detailHeader, item, head };
 }
 
-const titleOf = (p, fmt) => `${p.customer_name || "〇〇"} 様邸${SEP}${p.work_title || DEFAULT_TITLE[fmt]}${SEP}見積書`;
+// お施主様名。法人の名称と個人の名前の両方があれば、続けて書く
+const ownerOf = p => [p.customer_company, p.customer_name].filter(Boolean).join(" ");
+// 2026-11-14 → 2026年11月14日。日付の形でなければそのまま返す
+const dateJp = v => { const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(v || ""); return m ? `${+m[1]}年${+m[2]}月${+m[3]}日` : (v || null); };
+// 工期。着工予定日〜完工予定日。どちらもなければ工事希望時期
+const termOf = p => (p.start_date || p.end_date ? `${dateJp(p.start_date) || ""} 〜 ${dateJp(p.end_date) || ""}`.trim() : (p.work_period || null));
+const titleOf = (p, fmt) => `${ownerOf(p) || "〇〇"} 様邸${SEP}${DEFAULT_TITLE[fmt]}${SEP}見積書`;
 
 function pageSetup(ws, orientation, lastCol, lastRow, titleRow) {
   const m = orientation === "landscape" ? 0.4 : 0.7;
@@ -2263,7 +2265,7 @@ function writeCover(ws, p, totalCell) {
   put("AC5", `令和${now.getFullYear() - 2018}`, { h: "right", v: "middle", merge: "AC5:AD5" });
   put("AE5", "年", { v: "middle" }); put("AF5", now.getMonth() + 1, { h: "right", v: "middle" });
   put("AG5", "月", { v: "middle" }); put("AH5", now.getDate(), { h: "right", v: "middle" }); put("AI5", "日", { v: "middle" });
-  put("B7", `${p.customer_name || ""}${SEP}様`, { size: 18, merge: "B7:N7" });
+  put("B7", `${ownerOf(p)}${SEP}様`, { size: 18, merge: "B7:N7" });
 
   put("C10", "御見積金額 ", { size: 22, h: "center", merge: "C10:J11" });
   put("K10", "￥", { size: 22, h: "center", merge: "K10:K11" });
@@ -2287,7 +2289,7 @@ function writeCover(ws, p, totalCell) {
   });
 
   const remarks = p.remarks || "";
-  [[20, "工事名", p.work_title || DEFAULT_TITLE.mizumawari, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", p.work_period, "F24:O24"],
+  [[20, "工事名", DEFAULT_TITLE.mizumawari, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", termOf(p), "F24:O24"],
    [26, "決済条件", null, "F26:O26"], [28, "有効期限", null, "F28:O28"], [30, "備考", remarks || null, "F30:O30"]].forEach(([r, label, value, rng]) => {
     put(`B${r}`, label, { h: "center", v: "middle", merge: `B${r}:D${r}` });
     put(`F${r}`, value || null, { h: "left", v: "middle", merge: rng });
@@ -2307,16 +2309,16 @@ function writePropertySheet(ps, p) {
   ps.getColumn(1).width = 22; ps.getColumn(2).width = 48;
   ps.getCell(1, 1).value = "物件情報（見積条件）"; ps.getCell(1, 1).font = xfont(16, true);
   const rows = [
-    ["お客様名", p.customer_name], ["工事名", p.work_title], ["物件所在地", p.address], ["構造・工法", p.structure],
-    ["依頼元", p.company_name], ["見積提出期限", p.due_date], ["工事希望時期", p.work_period],
+    ["お施主様名（法人の名称）", p.customer_company], ["お施主様名（個人の名前）", p.customer_name], ["物件所在地", p.address], ["構造・工法", p.structure],
+    ["着工予定日", dateJp(p.start_date)], ["完工予定日", dateJp(p.end_date)], ["見積提出期限", dateJp(p.due_date)], ["工事希望時期", p.work_period],
     ["階数", FLOOR_LABEL[p.floors]], ["水回りの範囲", p.plumbing], ["備考・特記事項", p.remarks],
   ];
   const box = { left: THIN, right: THIN, top: THIN, bottom: THIN };
   rows.forEach(([label, value], i) => {
     const r = i + 3, a = ps.getCell(r, 1), b = ps.getCell(r, 2);
     a.value = label; a.font = xfont(11, true); a.border = box; a.alignment = { vertical: "middle" };
-    b.value = value || null; b.font = xfont(); b.alignment = { wrapText: true, vertical: r === 12 ? "top" : "middle" }; b.border = box;
-    ps.getRow(r).height = r === 12 ? 63 : 21;
+    b.value = value || null; b.font = xfont(); b.alignment = { wrapText: true, vertical: r === rows.length + 2 ? "top" : "middle" }; b.border = box;
+    ps.getRow(r).height = r === rows.length + 2 ? 63 : 21;
   });
   const note = ps.getCell(rows.length + 4, 1);
   note.value = "※ 単価・摘要をご記入ください。金額・小計・合計は自動計算されます。"; note.font = xfont(10);
@@ -2329,7 +2331,7 @@ $("#export").addEventListener("click", async () => {
   btn.disabled = true; btn.textContent = "作成中…";
   try {
     const buf = await buildXlsx(data);
-    const filename = [p.customer_name || "お客様", p.work_title, "見積依頼書"].filter(Boolean).join("_") + ".xlsx";
+    const filename = [p.customer_company, p.customer_name, "見積依頼書"].filter(Boolean).join("_") + ".xlsx";
     // claude.ai 上の公開ページでは保存機能(downloads)を使い、通常のWebサイトでは通常のダウンロードにする
     const downloads = window.claude && claude.use ? await claude.use("downloads").catch(() => null) : null;
     if (downloads) await downloads.save({ filename, data: buf });

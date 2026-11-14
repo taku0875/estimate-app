@@ -15,31 +15,35 @@
   <aside class="side">
     <div class="brand">
       <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#3b4533"/><rect x="5" y="17" width="10" height="10" rx="2" fill="#a9d46a"/><rect x="17" y="17" width="10" height="10" rx="2" fill="#a9d46a"/><rect x="11" y="5" width="10" height="10" rx="2" fill="#a9d46a"/></svg>
-      <div><b>TSUMIKI</b><small>ESTIMATE BUILDER</small></div>
+      <div><b>TSUMIKI</b></div>
     </div>
     <nav id="nav">
       <a href="#property" class="on"><i>1</i><span>物件情報<small id="navP"></small></span></a>
       <a href="#works"><i>2</i><span>工事の選択<small id="navW"></small></span></a>
       <a href="#detail"><i>3</i><span>内訳の確認<small id="navD"></small></span></a>
     </nav>
-    <p class="sidenote">単価は業者が入力します。<br>金額・小計・合計は自動計算されます。</p>
   </aside>
 
   <div class="content">
     <header class="top">
-      <div class="crumb"><span>見積依頼</span><span class="sep">/</span><b id="topTitle">新規の見積依頼</b></div>
-      <div class="chips" id="topChips"></div>
+      <div class="crumb"><b>新規の見積依頼</b></div>
     </header>
     <p class="banner" id="sampleNote" hidden>サンプル版です。入力内容は保存されません。</p>
 
     <main>
       <section class="card" id="property">
-        <div class="card-h"><h2>物件情報</h2><span>見積依頼の基本条件</span></div>
+        <div class="card-h"><h2>物件情報</h2></div>
         <div class="grid">
-          <label>お客様名<input data-k="customer_name" placeholder="例: 山田太郎"></label>
-          <label>工事名<input data-k="work_title" value="リノベーション工事"></label>
-          <label class="wide">物件所在地<input data-k="address" placeholder="例: 札幌市中央区…"></label>
-          <label>依頼元（自社名）<input data-k="company_name" value="株式会社石丸ハウスセンター"></label>
+          <div class="wide pair">
+            <span class="gl">お施主様名</span>
+            <div class="two">
+              <label>法人の名称<input data-k="customer_company" placeholder="例: 株式会社〇〇"></label>
+              <label>個人の名前<input data-k="customer_name" placeholder="例: 山田太郎"></label>
+            </div>
+          </div>
+          <label class="wide">物件所在地<input data-k="address" placeholder="例: 名古屋市中区…"></label>
+          <label>着工予定日<input type="date" data-k="start_date"></label>
+          <label>完工予定日<input type="date" data-k="end_date"></label>
           <label>工事希望時期<input data-k="work_period" placeholder="例: 2026年12月〜"></label>
           <label>見積提出期限<input type="date" data-k="due_date"></label>
         </div>
@@ -64,13 +68,13 @@
         </div>
         <p class="hint">構造と階数に合わせて、工事内訳が絞り込まれます。数量は、内訳の表で直接入力します。</p>
 
-        <label class="wide block">備考・特記事項（業者への伝達事項）<textarea data-k="remarks" rows="3" placeholder="搬入経路、工事時間の制限、既存設備の状況など"></textarea></label>
+        <label class="wide block">備考・特記事項（お取引先への伝達事項）<textarea data-k="remarks" rows="3" placeholder="搬入経路、工事時間の制限、既存設備の状況など"></textarea></label>
       </section>
 
       <section class="card" id="works">
-        <div class="card-h"><h2>工事の選択</h2><span>種類を選んでから、カードで微調整できます</span></div>
+        <div class="card-h"><h2>工事の選択</h2></div>
         <div class="fmt">
-          <div class="plumb-h"><b>工事の種類（Excelの形式）</b><span>選ぶと、その種類の工事が選ばれ、Excelの形も切り替わります。下のカードで微調整できます</span></div>
+          <div class="plumb-h"><b>工事の種類</b><span>選択した種類に応じて、Excelの出力形式が替わります。</span></div>
           <div class="seg" id="formats"></div>
         </div>
 

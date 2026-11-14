@@ -88,11 +88,13 @@ class Category(BaseModel):
 
 class Property(BaseModel):
     """物件情報。画面の「物件情報」欄に対応する。"""
-    customer_name: ShortText = ""
-    work_title: ShortText = "リノベーション工事"
+    customer_company: ShortText = ""  # お施主様名の法人の名称
+    customer_name: ShortText = ""     # お施主様名の個人の名前
     address: ShortText = ""
     structure: ShortText = ""
-    company_name: ShortText = "株式会社石丸ハウスセンター"  # 自社名(初期値。画面で書き換え可)
+    company_name: ShortText = "株式会社石丸ハウスセンター"  # 自社名(画面では入力しない。Excelに入る)
+    start_date: Annotated[str, Field(max_length=20)] = ""  # 着工予定日
+    end_date: Annotated[str, Field(max_length=20)] = ""    # 完工予定日
     due_date: Annotated[str, Field(max_length=20)] = ""
     work_period: ShortText = ""
     floors: Annotated[int, Field(ge=1, le=3)] = 2
@@ -192,7 +194,7 @@ def export_excel(req: ExportRequest):
 
 def _export_filename(p: Property) -> str:
     """例: 山田太郎_リノベーション工事_見積依頼書_〇〇工務店.xlsx"""
-    parts = [p.customer_name or "お客様", p.work_title, "見積依頼書"]
+    parts = [p.customer_company, p.customer_name, "見積依頼書"]
     # ファイル名に使えない文字(制御文字を含む)は全角の「＿」に置き換える
     name = "".join("＿" if ch in UNSAFE_FILENAME_CHARS or ord(ch) < 32 else ch
                    for ch in "_".join(x for x in parts if x))

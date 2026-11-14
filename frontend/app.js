@@ -25,6 +25,7 @@ const openCats = new Set(); // 内訳で開いている大項目 id
 const fixturesOn = new Set(); // 水回りで選択中の設備のキー(kitchen など)
 let structure = "wood";     // 構造(STRUCT のキー)
 let floors = 2;             // 階数
+const COMPANY = "株式会社石丸ハウスセンター";
 let format = "renovation";  // Excelの形式(FORMATS のキー)
 
 // 構造・階数・水回りの範囲に合う項目だけを表示・出力する。fixtures を持つ項目は、そのどれかが選ばれていれば出す
@@ -81,12 +82,10 @@ function renderFormats() {
     `<button type="button" data-f="${k}" class="${k === format ? "on" : ""}">${f.name}</button>`).join("");
 }
 
-// 種類を切り替える。その種類の大項目を選び、工事名が初期値のままなら種類に合う初期値に直す
+// 種類を切り替える。その種類の大項目を選び、水回りの設備はすべて対象に戻す
 function setFormat(k) {
-  const t = $("[data-k=work_title]");
-  if (t && Object.values(FORMATS).some(f => f.title === t.value.trim())) t.value = FORMATS[k].title;
   format = k;
-  plumbing.fixtures.forEach(f => fixturesOn.add(f.key)); // 設備は、種類を変えるたびにすべて対象に戻す
+  plumbing.fixtures.forEach(f => fixturesOn.add(f.key));
   const p = presets.find(x => x.format === k);
   if (p) { selected.clear(); p.ids.forEach(id => selected.add(id)); }
   rerender();
@@ -136,15 +135,6 @@ function renderDetail() {
   $("#status").textContent = `${cats.length}工事 / ${n}項目 を出力`;
 }
 
-// 上部のタイトルとチップ
-function renderTop() {
-  const g = k => (document.querySelector(`[data-k=${k}]`)?.value || "").trim();
-  const name = g("customer_name");
-  $("#topTitle").textContent = name ? `${name} 様邸 ${g("work_title")}` : "新規の見積依頼";
-  $("#topChips").innerHTML = [STRUCT[structure], FLOOR_LABEL[floors]].map(t => `<span class="chip">${t}</span>`).join("") +
-    "";
-}
-
 // 右側の「出力の内容」と左ナビの補足
 function renderSummary(cats) {
   const items = cats.flatMap(visibleItems);
@@ -159,7 +149,6 @@ function renderSummary(cats) {
   $("#navP").textContent = structLabel();
   $("#navW").textContent = `${cats.length}工事を選択`;
   $("#navD").textContent = `${items.length}項目`;
-  renderTop();
 }
 
 function rerender() { renderCats(); renderDetail(); }
@@ -167,7 +156,6 @@ function rerender() { renderCats(); renderDetail(); }
 // ---- イベント: 物件情報 ----
 $("#structures").addEventListener("change", e => { structure = e.target.value; rerender(); });
 $("#floors").addEventListener("change", e => { floors = +e.target.value; rerender(); });
-document.addEventListener("input", e => { if (e.target.dataset.k) renderTop(); }); // data-k: 文字の項目(お客様名など)
 
 // ---- イベント: 工事の選択 ----
 $("#formats").addEventListener("click", e => { const k = e.target.dataset.f; if (k) setFormat(k); });
@@ -239,6 +227,7 @@ function propertyData() {
   document.querySelectorAll("[data-k]").forEach(el => (p[el.dataset.k] = el.value));
   p.floors = floors;
   p.structure = STRUCT[structure];
+  p.company_name = COMPANY; // 依頼元(自社名)は画面では入力しない
   p.plumbing = plumbingLabel();
   p.format = format;
   return p;

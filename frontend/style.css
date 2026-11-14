@@ -53,6 +53,8 @@ h2::before{counter-increment:sec;content:counter(sec);width:26px;height:26px;bor
 h3{margin:22px 0 8px;font-size:13px;font-weight:700}
 h3 small{color:var(--sub);font-weight:400;font-size:12px;margin-left:6px}
 .hint{margin:10px 0 0;color:var(--sub);font-size:12px}
+.gl{font-size:12px;color:var(--sub);font-weight:500;display:block;margin-bottom:5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px 16px}
 .wide{grid-column:1/-1}.block{display:flex;margin-top:18px}
 .split{display:flex;gap:36px;flex-wrap:wrap;margin-top:6px}
@@ -167,6 +169,7 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
   #nav{flex-direction:row}
   #nav a{padding:6px 10px;white-space:nowrap}
   .top{padding:12px 16px;top:0}
+  .two{grid-template-columns:1fr}
   main{padding:16px 16px 96px}
   .banner{margin:12px 16px 0}
   .card{padding:16px}.card-h{margin:-16px -16px 16px;padding:12px 16px}

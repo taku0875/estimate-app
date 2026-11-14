@@ -169,8 +169,30 @@ _ALIGN = {"no": "center", "name": "left", "spec": "left", "qty": "right", "unit"
           "price": "right", "amount": "right", "note": "left"}
 
 
+def _owner(prop):
+    """お施主様名。法人の名称と個人の名前の両方があれば、続けて書く。"""
+    return " ".join(x for x in (prop.get("customer_company"), prop.get("customer_name")) if x)
+
+
+def _date(v):
+    """2026-11-14 → 2026年11月14日。日付の形でなければそのまま返す。"""
+    try:
+        y, m, d = (int(x) for x in str(v).split("-"))
+        return f"{y}年{m}月{d}日"
+    except ValueError:
+        return v or None
+
+
+def _term(prop):
+    """工期。着工予定日〜完工予定日。どちらもなければ工事希望時期。"""
+    a, b = _date(prop.get("start_date")), _date(prop.get("end_date"))
+    if a or b:
+        return f"{a or ''} 〜 {b or ''}".strip()
+    return prop.get("work_period") or None
+
+
 def _title(prop, fmt):
-    return f"{prop.get('customer_name') or '〇〇'} 様邸{SEP}{prop.get('work_title') or DEFAULT_TITLE[fmt]}{SEP}見積書"
+    return f"{_owner(prop) or '〇〇'} 様邸{SEP}{DEFAULT_TITLE[fmt]}{SEP}見積書"
 
 
 def _page(ws, orientation, last_col, last_row, title_row=None):
@@ -339,7 +361,7 @@ def _write_cover(ws, prop, total_cell):
     put("AG5", "月", v="center")
     put("AH5", today.day, h="right", v="center")
     put("AI5", "日", v="center")
-    put("B7", f"{prop.get('customer_name') or ''}{SEP}様", 18, merge="B7:N7")
+    put("B7", f"{_owner(prop)}{SEP}様", 18, merge="B7:N7")
 
     # 御見積金額 = 工事金額 + 消費税相当額
     put("C10", "御見積金額 ", 22, h="center", merge="C10:J11")
@@ -368,9 +390,9 @@ def _write_cover(ws, prop, total_cell):
 
     # 工事名・場所など
     remarks = prop.get("remarks") or ""
-    rows = [(20, "工事名", prop.get("work_title") or DEFAULT_TITLE["mizumawari"], "F20:U20"),
+    rows = [(20, "工事名", DEFAULT_TITLE["mizumawari"], "F20:U20"),
             (22, "工事場所", prop.get("address"), "F22:O22"),
-            (24, "工期", prop.get("work_period"), "F24:O24"),
+            (24, "工期", _term(prop), "F24:O24"),
             (26, "決済条件", None, "F26:O26"),
             (28, "有効期限", None, "F28:O28"),
             (30, "備考", remarks or None, "F30:O30")]
@@ -403,12 +425,13 @@ def _write_property_sheet(ps, prop):
     ps.column_dimensions["B"].width = 48
     ps.cell(1, 1, "物件情報（見積条件）").font = _font(16, True)
     rows = [
-        ("お客様名", prop.get("customer_name")),
-        ("工事名", prop.get("work_title")),
+        ("お施主様名（法人の名称）", prop.get("customer_company")),
+        ("お施主様名（個人の名前）", prop.get("customer_name")),
         ("物件所在地", prop.get("address")),
         ("構造・工法", prop.get("structure")),
-        ("依頼元", prop.get("company_name")),
-        ("見積提出期限", prop.get("due_date")),
+        ("着工予定日", _date(prop.get("start_date"))),
+        ("完工予定日", _date(prop.get("end_date"))),
+        ("見積提出期限", _date(prop.get("due_date"))),
         ("工事希望時期", prop.get("work_period")),
         ("階数", FLOOR_LABELS.get(prop.get("floors"))),
         ("水回りの範囲", prop.get("plumbing")),
@@ -422,9 +445,9 @@ def _write_property_sheet(ps, prop):
         if isinstance(b.value, str):
             b.data_type = "s"
         b.font = _font()
-        b.alignment = Alignment(wrap_text=True, vertical="center" if r != 12 else "top")
+        b.alignment = Alignment(wrap_text=True, vertical="center" if r != len(rows) + 2 else "top")
         a.alignment = Alignment(vertical="center")
         a.border = b.border = box
         ps.row_dimensions[r].height = 21
-    ps.row_dimensions[12].height = 63  # 備考
+    ps.row_dimensions[len(rows) + 2].height = 63  # 備考(最後の行)
     ps.cell(len(rows) + 4, 1, "※ 単価・摘要をご記入ください。金額・小計・合計は自動計算されます。").font = _font(10)
