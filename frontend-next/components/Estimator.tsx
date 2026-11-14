@@ -244,7 +244,7 @@ export default function Estimator() {
           </section>
 
           <section className="card" id="detail">
-            <div className="card-h"><h2>内訳の確認</h2><span>数量・仕様・単位は直接入力できます。単価はExcelで業者が入力します</span></div>
+            <div className="card-h"><h2>内訳の確認</h2></div>
             {cats.length === 0 ? <p className="empty">「工事の選択」で工事を選ぶと、内訳がここに表示されます。</p> : cats.map(c => (
               <details key={c.id} open={openCats.has(c.id)} onToggle={e => {
                 const open = (e.currentTarget as HTMLDetailsElement).open;
