@@ -40,12 +40,22 @@ app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_methods=
                    allow_headers=["Content-Type"], expose_headers=["Content-Disposition"])
 
 
+# 画面は自分のサーバーのスクリプトだけを実行する(Google Fonts のみ外部から読む)。万一HTMLに不正な文字が混ざっても、実行させない
+CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+       "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; "
+       "base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
+
+
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
     res = await call_next(request)
     res.headers.setdefault("X-Content-Type-Options", "nosniff")
     res.headers.setdefault("X-Frame-Options", "DENY")
     res.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    if request.url.path.startswith("/api/"):
+        res.headers.setdefault("Cache-Control", "no-store")  # 見積の内容を、ブラウザや中継サーバーに残さない
+    if not request.url.path.startswith(("/docs", "/openapi.json")):  # /docs は外部のスクリプトを使うので除く
+        res.headers.setdefault("Content-Security-Policy", CSP)
     return res
 
 
