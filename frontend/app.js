@@ -108,14 +108,14 @@ function renderCats() {
 function itemRow(it, i) {
   const cls = [it.group ? "group" : "", needsQty(it) ? "todo" : ""].join(" ");
   const cells = it.group ? `<td colspan="4"></td>` : `
-    <td><input data-f="spec" value="${esc(it.spec)}"></td>
+    <td><input data-f="spec" value="${esc(it.spec)}" placeholder="仕様を記入"></td>
     <td class="q"><input data-f="qty" type="number" step="any" inputmode="decimal" placeholder="数量" value="${esc(it.qty)}"></td>
     <td class="u"><input data-f="unit" value="${esc(it.unit)}"></td>
-    <td><input data-f="note" value="${esc(it.note)}"></td>`;
+    <td><input data-f="note" value="${esc(it.note)}" placeholder="摘要"></td>`;
   return `
     <tr class="${cls}" data-i="${i}">
       <td><input data-f="name" value="${esc(it.name)}"></td>${cells}
-      <td class="ac"><button class="mini" data-act="del" title="削除">✕</button><button class="mini" data-act="up" title="上へ">↑</button></td>
+      <td class="ac"><button class="mini" data-act="del" title="削除">✕</button><button class="mini" data-act="up" title="上へ">↑</button><button class="mini" data-act="down" title="下へ">↓</button></td>
     </tr>`;
 }
 
@@ -213,6 +213,12 @@ $("#detailBody").addEventListener("click", e => {
     let j = i - 1;
     while (j >= 0 && !visible(items[j])) j--;
     if (j >= 0) [items[j], items[i]] = [items[i], items[j]];
+  }
+  if (act === "down") {
+    // 画面に出ている1つ下の項目と入れ替える
+    let j = i + 1;
+    while (j < items.length && !visible(items[j])) j++;
+    if (j < items.length) [items[j], items[i]] = [items[i], items[j]];
   }
   if (act === "add") items.push({ name: "", spec: "", qty: null, unit: "式" });
   if (act === "addg") items.push({ name: "【】", group: true });

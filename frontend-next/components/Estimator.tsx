@@ -81,6 +81,13 @@ export default function Estimator() {
     setCatalog(cs => cs.map(c => (c.id === ci ? { ...c, items: fn(c.items) } : c)));
   const patchItem = (ci: number, i: number, patch: Partial<Item>) =>
     patchCat(ci, its => its.map((it, k) => (k === i ? { ...it, ...patch } : it)));
+  const moveDown = (ci: number, i: number) => patchCat(ci, its => {
+    // 画面に出ている1つ下の項目と入れ替える
+    let j = i + 1;
+    while (j < its.length && !visible(its[j], cond)) j++;
+    if (j >= its.length) return its;
+    const n = [...its]; [n[j], n[i]] = [n[i], n[j]]; return n;
+  });
   const moveUp = (ci: number, i: number) => patchCat(ci, its => {
     // 画面に出ている1つ上の項目と入れ替える(隠れている項目は飛ばす)
     let j = i - 1;
@@ -250,15 +257,16 @@ export default function Estimator() {
                       <tr key={i} className={[it.group ? "group" : "", needsQty(it) ? "todo" : ""].join(" ")}>
                         <td><input value={it.name} onChange={e => patchItem(c.id, i, { name: e.target.value })} /></td>
                         {it.group ? <td colSpan={4}></td> : <>
-                          <td><input value={it.spec ?? ""} onChange={e => patchItem(c.id, i, { spec: e.target.value })} /></td>
+                          <td><input placeholder="仕様を記入" value={it.spec ?? ""} onChange={e => patchItem(c.id, i, { spec: e.target.value })} /></td>
                           <td className="q"><input type="number" step="any" inputMode="decimal" placeholder="数量" value={it.qty ?? ""}
                             onChange={e => patchItem(c.id, i, { qty: e.target.value === "" ? null : +e.target.value })} /></td>
                           <td className="u"><input value={it.unit ?? ""} onChange={e => patchItem(c.id, i, { unit: e.target.value })} /></td>
-                          <td><input value={it.note ?? ""} onChange={e => patchItem(c.id, i, { note: e.target.value })} /></td>
+                          <td><input placeholder="摘要" value={it.note ?? ""} onChange={e => patchItem(c.id, i, { note: e.target.value })} /></td>
                         </>}
                         <td className="ac">
                           <button className="mini" title="削除" onClick={() => patchCat(c.id, its => its.filter((_, k) => k !== i))}>✕</button>
                           <button className="mini" title="上へ" onClick={() => moveUp(c.id, i)}>↑</button>
+                          <button className="mini" title="下へ" onClick={() => moveDown(c.id, i)}>↓</button>
                         </td>
                       </tr>
                     ))}

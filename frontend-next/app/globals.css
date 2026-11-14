@@ -110,7 +110,8 @@ details[open]>summary{border-bottom:1px solid var(--line)}
 summary .no{font-size:12px;font-weight:700;color:var(--black);background:var(--lime);border-radius:6px;padding:0 7px}
 summary small{margin-left:auto;font-weight:500;color:var(--sub);font-size:12px}
 .tbl{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:640px}
+table{width:100%;border-collapse:collapse;min-width:900px}
+tbody td:first-child{min-width:230px}
 th,td{border-top:1px solid var(--line);padding:3px 6px;text-align:left}
 thead th{border-top:0}
 th{font-size:11px;color:var(--sub);background:#fbfbf8;font-weight:500;padding:7px 8px;letter-spacing:.04em}
@@ -118,7 +119,9 @@ tbody tr:hover td{background:#fbfbf8}
 td input{padding:5px 8px;border-color:transparent;background:transparent}
 td input:hover{border-color:var(--line2);background:var(--paper)}
 td input:focus-visible{background:var(--paper)}
-td.q{width:104px}td.q input{text-align:right}td.u{width:76px}td.ac{width:84px;white-space:nowrap;text-align:right}
+td input[data-f=spec],td input[data-f=note]{border-color:var(--line2);background:var(--paper)}
+td input::placeholder{color:#a3ab9a}
+td.q{width:104px}td.q input{text-align:right}td.u{width:76px}td.ac{width:112px;white-space:nowrap;text-align:right}
 tr.group td{background:var(--lime-50)}
 tr.group:hover td{background:var(--lime-50)}
 tr.group td input[data-f=name]{font-weight:700}

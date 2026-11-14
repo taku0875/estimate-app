@@ -118,7 +118,8 @@ details[open]>summary{border-bottom:1px solid var(--line)}
 summary .no{font-size:12px;font-weight:700;color:var(--black);background:var(--lime);border-radius:6px;padding:0 7px}
 summary small{margin-left:auto;font-weight:500;color:var(--sub);font-size:12px}
 .tbl{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:640px}
+table{width:100%;border-collapse:collapse;min-width:900px}
+tbody td:first-child{min-width:230px}
 th,td{border-top:1px solid var(--line);padding:3px 6px;text-align:left}
 thead th{border-top:0}
 th{font-size:11px;color:var(--sub);background:#fbfbf8;font-weight:500;padding:7px 8px;letter-spacing:.04em}
@@ -126,7 +127,9 @@ tbody tr:hover td{background:#fbfbf8}
 td input{padding:5px 8px;border-color:transparent;background:transparent}
 td input:hover{border-color:var(--line2);background:var(--paper)}
 td input:focus-visible{background:var(--paper)}
-td.q{width:104px}td.q input{text-align:right}td.u{width:76px}td.ac{width:84px;white-space:nowrap;text-align:right}
+td input[data-f=spec],td input[data-f=note]{border-color:var(--line2);background:var(--paper)}
+td input::placeholder{color:#a3ab9a}
+td.q{width:104px}td.q input{text-align:right}td.u{width:76px}td.ac{width:112px;white-space:nowrap;text-align:right}
 tr.group td{background:var(--lime-50)}
 tr.group:hover td{background:var(--lime-50)}
 tr.group td input[data-f=name]{font-weight:700}
@@ -1930,14 +1933,14 @@ function renderCats() {
 function itemRow(it, i) {
   const cls = [it.group ? "group" : "", needsQty(it) ? "todo" : ""].join(" ");
   const cells = it.group ? `<td colspan="4"></td>` : `
-    <td><input data-f="spec" value="${esc(it.spec)}"></td>
+    <td><input data-f="spec" value="${esc(it.spec)}" placeholder="仕様を記入"></td>
     <td class="q"><input data-f="qty" type="number" step="any" inputmode="decimal" placeholder="数量" value="${esc(it.qty)}"></td>
     <td class="u"><input data-f="unit" value="${esc(it.unit)}"></td>
-    <td><input data-f="note" value="${esc(it.note)}"></td>`;
+    <td><input data-f="note" value="${esc(it.note)}" placeholder="摘要"></td>`;
   return `
     <tr class="${cls}" data-i="${i}">
       <td><input data-f="name" value="${esc(it.name)}"></td>${cells}
-      <td class="ac"><button class="mini" data-act="del" title="削除">✕</button><button class="mini" data-act="up" title="上へ">↑</button></td>
+      <td class="ac"><button class="mini" data-act="del" title="削除">✕</button><button class="mini" data-act="up" title="上へ">↑</button><button class="mini" data-act="down" title="下へ">↓</button></td>
     </tr>`;
 }
 
@@ -2035,6 +2038,12 @@ $("#detailBody").addEventListener("click", e => {
     let j = i - 1;
     while (j >= 0 && !visible(items[j])) j--;
     if (j >= 0) [items[j], items[i]] = [items[i], items[j]];
+  }
+  if (act === "down") {
+    // 画面に出ている1つ下の項目と入れ替える
+    let j = i + 1;
+    while (j < items.length && !visible(items[j])) j++;
+    if (j < items.length) [items[j], items[i]] = [items[i], items[j]];
   }
   if (act === "add") items.push({ name: "", spec: "", qty: null, unit: "式" });
   if (act === "addg") items.push({ name: "【】", group: true });
