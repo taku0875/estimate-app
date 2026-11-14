@@ -281,7 +281,7 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
       <h4>出力の内容</h4>
       <dl>
         <div><dt>構造・階数</dt><dd id="sStruct">—</dd></div>
-        <div><dt>水回り</dt><dd id="sPlumb">—</dd></div>
+        <div><dt>工事の種類</dt><dd id="sPlumb">—</dd></div>
         <div><dt>工事</dt><dd id="sWorks">—</dd></div>
         <div><dt>内訳項目</dt><dd id="sItems">—</dd></div>
         <div><dt>数量が未入力</dt><dd id="sTodo">—</dd></div>
@@ -1967,7 +1967,7 @@ function renderSummary(cats) {
   const todo = items.filter(needsQty).length;
   const pl = plumbingLabel();
   $("#sStruct").textContent = structLabel();
-  $("#sPlumb").textContent = pl || "—";
+  $("#sPlumb").textContent = FORMATS[format].name + (pl ? `（${pl}）` : ""); // 選んだ工事の種類(水回りリフォームは設備も)
   $("#sWorks").textContent = `${cats.length}工事`;
   $("#sItems").textContent = `${items.length}項目`;
   $("#sTodo").textContent = todo ? `${todo}項目` : "なし";
