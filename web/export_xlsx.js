@@ -1,13 +1,13 @@
 // ---- 単体HTML版: ブラウザ内でExcelを生成して保存する(backend/excel_export.py の移植) ----
 // レイアウトを変えるときは excel_export.py とそろえる。出力の形は2種類(見本のExcelに合わせている):
-//   renovation(工事)・exterior(外装) … 見積書(8列) + 物件情報 / interior(内装) … 表紙 + 見積もり内訳(11列) + 物件情報
+//   renovation(リノベーション工事)・exterior(外装工事)・interior(内装工事) … 見積書(8列) + 物件情報 / mizumawari(水回りリフォーム) … 表紙 + 見積もり内訳(11列) + 物件情報
 // ExcelJS は文字列を数式として扱わない(数式は { formula } で明示する)ので、入力値はそのまま書いてよい。
 const XFONT = "ＭＳ 明朝";
 const THIN = { style: "thin" };
 const SEP = "　";
 const HEAD = { no: "No.", name: `名${SEP}${SEP}${SEP}称`, spec: `仕${SEP}${SEP}${SEP}様`, qty: "数量", unit: "単位", price: `単${SEP}価`, amount: `金${SEP}額`, note: `摘${SEP}要` };
 const DETAIL = `（内${SEP}訳${SEP}明${SEP}細）`;
-const DEFAULT_TITLE = { renovation: "リノベーション工事", interior: "水回りリフォーム工事", exterior: "外装リフォーム工事" };
+const DEFAULT_TITLE = { renovation: "リノベーション工事", mizumawari: "水回りリフォーム工事", exterior: "外装工事", interior: "内装工事" };
 const ALIGN = { no: "center", name: "left", spec: "left", qty: "right", unit: "center", price: "right", amount: "right", note: "left" };
 
 // 列の配置。spacers は「直前の列とひと続きに見せる細い余白列」(罫線の左右だけ外す)
@@ -22,7 +22,7 @@ const colL = n => { let s = ""; while (n > 0) { const m = (n - 1) % 26; s = Stri
 
 async function buildXlsx({ property: p, categories: cats }) {
   const wb = new ExcelJS.Workbook();
-  if (p.format === "interior") {
+  if (p.format === "mizumawari") {
     const cover = wb.addWorksheet("表紙");
     const est = wb.addWorksheet("見積もり内訳");
     const totalCell = writeMizumawari(est, p, cats, p.format);
@@ -126,7 +126,7 @@ function writeRenovation(ws, p, cats, fmt = "renovation") {
 }
 
 // 水回りリフォーム「見積もり内訳」シート: ヘッダ → 大項目ごとの内訳と小計 → 大項目の一覧 → 合計。合計セルの番地を返す
-function writeMizumawari(ws, p, cats, fmt = "interior") {
+function writeMizumawari(ws, p, cats, fmt = "mizumawari") {
   const money = "#,##0_);[Red](#,##0)", lay = LAYOUTS.mizumawari, s = makeSheet(ws, lay);
   ws.getColumn(12).width = 14.5; for (let c = 13; c <= 26; c++) ws.getColumn(c).width = 8;
   s.head(3, titleOf(p, fmt), p.company_name);
@@ -204,7 +204,7 @@ function writeCover(ws, p, totalCell) {
   });
 
   const remarks = p.remarks || "";
-  [[20, "工事名", p.work_title || DEFAULT_TITLE.interior, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", p.work_period, "F24:O24"],
+  [[20, "工事名", p.work_title || DEFAULT_TITLE.mizumawari, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", p.work_period, "F24:O24"],
    [26, "決済条件", null, "F26:O26"], [28, "有効期限", null, "F28:O28"], [30, "備考", remarks || null, "F30:O30"]].forEach(([r, label, value, rng]) => {
     put(`B${r}`, label, { h: "center", v: "middle", merge: `B${r}:D${r}` });
     put(`F${r}`, value || null, { h: "left", v: "middle", merge: rng });

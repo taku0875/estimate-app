@@ -3,11 +3,11 @@ export type Item = {
   group?: boolean; minFloors?: number; structures?: string[]; fixtures?: string[];
 };
 export type Category = { id: number; name: string; items: Item[] };
-export type ExcelFormat = "renovation" | "interior" | "exterior";
+export type ExcelFormat = "renovation" | "mizumawari" | "exterior" | "interior";
 export type Preset = { name: string; ids: number[]; format?: ExcelFormat };
 export type Fixture = { key: string; name: string };
 export type Pattern = { name: string; fixtures: string[] };
-export type Plumbing = { fixtures: Fixture[]; patterns: Pattern[] };
+export type Plumbing = { fixtures: Fixture[]; patterns?: Pattern[] };
 export type CatalogData = { categories: Category[]; presets?: Preset[]; plumbing?: Plumbing };
 export type Structure = "wood" | "steel" | "rc";
 export type Floors = 1 | 2 | 3;

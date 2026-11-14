@@ -1165,25 +1165,44 @@
      "name": "給水設備",
      "spec": "",
      "qty": 7.0,
-     "unit": "ヶ"
+     "unit": "ヶ",
+     "fixtures": [
+      "kitchen",
+      "bathwash",
+      "toilet"
+     ]
     },
     {
      "name": "給湯設備",
      "spec": "",
      "qty": 5.0,
-     "unit": "ヶ"
+     "unit": "ヶ",
+     "fixtures": [
+      "kitchen",
+      "bathwash"
+     ]
     },
     {
      "name": "排水設備",
      "spec": "",
      "qty": 7.0,
-     "unit": "ヶ"
+     "unit": "ヶ",
+     "fixtures": [
+      "kitchen",
+      "bathwash",
+      "toilet"
+     ]
     },
     {
      "name": "器具取付",
      "spec": "(接続部材込み）",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen",
+      "bathwash",
+      "toilet"
+     ]
     },
     {
      "name": "洗濯水栓",
@@ -1432,7 +1451,7 @@
  ],
  "presets": [
   {
-   "name": "工事",
+   "name": "リノベーション工事",
    "ids": [
     1,
     2,
@@ -1450,7 +1469,32 @@
    "format": "renovation"
   },
   {
-   "name": "内装",
+   "name": "水回りリフォーム",
+   "ids": [
+    1,
+    3,
+    5,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "format": "mizumawari"
+  },
+  {
+   "name": "外装工事",
+   "ids": [
+    4,
+    5,
+    7,
+    11,
+    12
+   ],
+   "format": "exterior"
+  },
+  {
+   "name": "内装工事",
    "ids": [
     1,
     3,
@@ -1463,17 +1507,6 @@
     12
    ],
    "format": "interior"
-  },
-  {
-   "name": "外装",
-   "ids": [
-    4,
-    5,
-    7,
-    11,
-    12
-   ],
-   "format": "exterior"
   }
  ],
  "plumbing": {
@@ -1491,35 +1524,6 @@
     "name": "トイレ"
    }
   ],
-  "patterns": [
-   {
-    "name": "キッチンのみ",
-    "fixtures": [
-     "kitchen"
-    ]
-   },
-   {
-    "name": "キッチン＋風呂＆洗面器",
-    "fixtures": [
-     "kitchen",
-     "bathwash"
-    ]
-   },
-   {
-    "name": "キッチン＋風呂＆洗面器＋トイレ",
-    "fixtures": [
-     "kitchen",
-     "bathwash",
-     "toilet"
-    ]
-   },
-   {
-    "name": "キッチン＋トイレ",
-    "fixtures": [
-     "kitchen",
-     "toilet"
-    ]
-   }
-  ]
+  "patterns": []
  }
 }

@@ -5,9 +5,10 @@ export const STRUCT: Record<Structure, string> = { wood: "木造", steel: "鉄�
 export const FLOOR_LABEL: Record<Floors, string> = { 1: "平屋", 2: "2階建て", 3: "3階建て" };
 // 工事の種類(=Excelの形式)。工事名の初期値も種類ごとに持つ
 export const FORMATS: Record<ExcelFormat, { name: string; title: string }> = {
-  renovation: { name: "工事（リノベーション）", title: "リノベーション工事" },
-  interior: { name: "内装（水回り）", title: "水回りリフォーム工事" },
-  exterior: { name: "外装", title: "外装リフォーム工事" },
+  renovation: { name: "リノベーション工事", title: "リノベーション工事" },
+  mizumawari: { name: "水回りリフォーム", title: "水回りリフォーム工事" },
+  exterior: { name: "外装工事", title: "外装工事" },
+  interior: { name: "内装工事", title: "内装工事" },
 };
 
 export type Cond = { structure: Structure; floors: Floors; fixturesOn: Set<string> };
@@ -21,10 +22,10 @@ export const visibleItems = (cat: Category, c: Cond) => cat.items.filter(i => !i
 export const needsQty = (it: Item) => !it.group && (it.qty == null || (it.qty as unknown) === "");
 export const sameSet = (a: Set<unknown>, b: Set<unknown>) => a.size === b.size && [...a].every(x => b.has(x));
 
-export const hasFixtureItems = (cats: Category[], floors: Floors) =>
-  cats.some(c => c.items.some(i => i.fixtures && (!i.minFloors || i.minFloors <= floors)));
-export const plumbingLabel = (cats: Category[], pl: Plumbing, c: Cond) => {
-  if (!hasFixtureItems(cats, c.floors)) return "";
+export const hasFixtureItems = (cats: Category[], floors: Floors, format: ExcelFormat) =>
+  format === "mizumawari" && cats.some(c => c.items.some(i => i.fixtures && (!i.minFloors || i.minFloors <= floors)));
+export const plumbingLabel = (cats: Category[], pl: Plumbing, c: Cond, format: ExcelFormat) => {
+  if (!hasFixtureItems(cats, c.floors, format)) return "";
   const names = pl.fixtures.filter(f => c.fixturesOn.has(f.key)).map(f => f.name);
   return names.length ? names.join("＋") : "なし";
 };

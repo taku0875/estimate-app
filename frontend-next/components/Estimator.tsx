@@ -15,7 +15,7 @@ const EMPTY: Prop = {
 export default function Estimator() {
   const [catalog, setCatalog] = useState<Category[]>([]);
   const [presets, setPresets] = useState<Preset[]>([]);
-  const [plumbing, setPlumbing] = useState<Plumbing>({ fixtures: [], patterns: [] });
+  const [plumbing, setPlumbing] = useState<Plumbing>({ fixtures: [] });
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [openCats, setOpenCats] = useState<Set<number>>(new Set());
   const [fixturesOn, setFixturesOn] = useState<Set<string>>(new Set());
@@ -39,15 +39,12 @@ export default function Estimator() {
         const cats = cat.categories.map(c => ({
           ...c, items: c.items.map(it => (it.group ? it : { ...it, qty: it.unit === "式" ? 1 : null })),
         }));
-        const pl = cat.plumbing ?? { fixtures: [], patterns: [] };
+        const pl = cat.plumbing ?? { fixtures: [] };
         setCatalog(cats);
         setPresets(cat.presets ?? []);
         setPlumbing(pl);
         setSelected(new Set(cats.map(c => c.id)));
-        // 初期は、設備をいちばん多く含む組み合わせ
-        const widest = pl.patterns.reduce<Plumbing["patterns"][number] | null>(
-          (a, p) => (!a || p.fixtures.length > a.fixtures.length ? p : a), null);
-        setFixturesOn(new Set(widest ? widest.fixtures : pl.fixtures.map(f => f.key)));
+        setFixturesOn(new Set(pl.fixtures.map(f => f.key))); // 初期は設備すべて
       } catch {
         setLoadError(true);
       }
@@ -71,8 +68,8 @@ export default function Estimator() {
   const cats = catalog.filter(c => selected.has(c.id));
   const items = cats.flatMap(c => visibleItems(c, cond));
   const todo = items.filter(needsQty).length;
-  const showPlumb = hasFixtureItems(cats, floors);
-  const plLabel = plumbingLabel(cats, plumbing, cond);
+  const showPlumb = hasFixtureItems(cats, floors, format);
+  const plLabel = plumbingLabel(cats, plumbing, cond, format);
   const structLabel = `${STRUCT[structure]}・${FLOOR_LABEL[floors]}`;
 
   const setP = (k: keyof Prop) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -97,6 +94,7 @@ export default function Estimator() {
     const p = presets.find(x => x.format === k);
     if (p) setSelected(new Set(p.ids));
     setProp(p => (Object.values(FORMATS).some(f => f.title === p.work_title.trim()) ? { ...p, work_title: FORMATS[k].title } : p));
+    setFixturesOn(new Set(plumbing.fixtures.map(f => f.key))); // 設備は、種類を変えるたびにすべて対象に戻す
     setFormat(k);
   };
 
@@ -214,14 +212,7 @@ export default function Estimator() {
 
             {showPlumb && (
               <div className="plumb">
-                <div className="plumb-h"><b>水回りの範囲</b><span>選んだ設備の工事だけが、内訳に出ます</span></div>
-                <h4 className="sub">よく使う組み合わせ</h4>
-                <div className="seg">
-                  {plumbing.patterns.map(p => (
-                    <button key={p.name} type="button" className={sameSet(new Set(p.fixtures), fixturesOn) ? "on" : ""}
-                      onClick={() => setFixturesOn(new Set(p.fixtures))}>{p.name}</button>
-                  ))}
-                </div>
+                <div className="plumb-h"><b>水回りの範囲</b><span>選んだ設備の工事だけが、給排水設備工事・住宅設備工事などの内訳に出ます</span></div>
                 <h4 className="sub">設備を個別に選ぶ</h4>
                 <div className="fx">
                   {plumbing.fixtures.map(f => (

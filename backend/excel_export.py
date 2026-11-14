@@ -1,8 +1,8 @@
 """見積依頼書(Excel)の生成。出力の形は2種類あり、それぞれ見本のExcelの体裁に合わせている。
 
-  renovation(工事)・exterior(外装)
+  renovation(リノベーション工事)・exterior(外装工事)・interior(内装工事)
               「リノベーション工事_見積依頼書.xlsx」 … 見積書(8列) + 物件情報
-  interior(内装)
+  mizumawari(水回りリフォーム)
               「水回りリフォーム工事 見積書.xlsx」   … 表紙 + 見積もり内訳(11列) + 物件情報
 
 単価は業者が入力する前提のため空欄にし、金額・小計・合計は数式にしてある。
@@ -22,8 +22,8 @@ from openpyxl.styles import Alignment, Border, Font, Side
 FONT = "ＭＳ 明朝"
 THIN = Side(style="thin")
 FLOOR_LABELS = {1: "平屋", 2: "2階建て", 3: "3階建て"}
-FORMATS = ("renovation", "interior", "exterior")
-DEFAULT_TITLE = {"renovation": "リノベーション工事", "interior": "水回りリフォーム工事", "exterior": "外装リフォーム工事"}
+FORMATS = ("renovation", "mizumawari", "exterior", "interior")
+DEFAULT_TITLE = {"renovation": "リノベーション工事", "mizumawari": "水回りリフォーム工事", "exterior": "外装工事", "interior": "内装工事"}
 
 SEP = "　"  # 全角スペース(見本の見出しの体裁)
 HEAD = {"no": "No.", "name": f"名{SEP*3}称", "spec": f"仕{SEP*3}様", "qty": "数量", "unit": "単位",
@@ -74,7 +74,7 @@ def build_workbook(data: dict) -> BytesIO:
     fmt = prop.get("format") if prop.get("format") in FORMATS else "renovation"
     wb = Workbook()
     ws = wb.active
-    if fmt == "interior":
+    if fmt == "mizumawari":
         ws.title = "表紙"
         est = wb.create_sheet("見積もり内訳")
         total_cell = _write_mizumawari(est, prop, data["categories"], fmt)
@@ -248,7 +248,7 @@ def _write_renovation(ws, prop, cats, fmt="renovation"):
 
 # ---------------------------------------------------------------- 水回りリフォーム(表紙 + 見積もり内訳)
 
-def _write_mizumawari(ws, prop, cats, fmt="interior"):
+def _write_mizumawari(ws, prop, cats, fmt="mizumawari"):
     """見積もり内訳シートを書き、合計セルの番地(表紙から参照する)を返す。"""
     money = "#,##0_);[Red](#,##0)"
     s = Sheet(ws, MIZUMAWARI)
@@ -368,7 +368,7 @@ def _write_cover(ws, prop, total_cell):
 
     # 工事名・場所など
     remarks = prop.get("remarks") or ""
-    rows = [(20, "工事名", prop.get("work_title") or DEFAULT_TITLE["interior"], "F20:U20"),
+    rows = [(20, "工事名", prop.get("work_title") or DEFAULT_TITLE["mizumawari"], "F20:U20"),
             (22, "工事場所", prop.get("address"), "F22:O22"),
             (24, "工期", prop.get("work_period"), "F24:O24"),
             (26, "決済条件", None, "F26:O26"),

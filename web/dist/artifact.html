@@ -251,9 +251,7 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
         </div>
 
         <div class="plumb" id="plumbing" hidden>
-          <div class="plumb-h"><b>水回りの範囲</b><span>選んだ設備の工事だけが、内訳に出ます</span></div>
-          <h4 class="sub">よく使う組み合わせ</h4>
-          <div class="seg" id="patterns"></div>
+          <div class="plumb-h"><b>水回りの範囲</b><span>選んだ設備の工事だけが、給排水設備工事・住宅設備工事などの内訳に出ます</span></div>
           <h4 class="sub">設備を個別に選ぶ</h4>
           <div class="fx" id="fixtures"></div>
         </div>
@@ -1455,25 +1453,44 @@ const CATALOG = {
      "name": "給水設備",
      "spec": "",
      "qty": 7.0,
-     "unit": "ヶ"
+     "unit": "ヶ",
+     "fixtures": [
+      "kitchen",
+      "bathwash",
+      "toilet"
+     ]
     },
     {
      "name": "給湯設備",
      "spec": "",
      "qty": 5.0,
-     "unit": "ヶ"
+     "unit": "ヶ",
+     "fixtures": [
+      "kitchen",
+      "bathwash"
+     ]
     },
     {
      "name": "排水設備",
      "spec": "",
      "qty": 7.0,
-     "unit": "ヶ"
+     "unit": "ヶ",
+     "fixtures": [
+      "kitchen",
+      "bathwash",
+      "toilet"
+     ]
     },
     {
      "name": "器具取付",
      "spec": "(接続部材込み）",
      "qty": 1.0,
-     "unit": "式"
+     "unit": "式",
+     "fixtures": [
+      "kitchen",
+      "bathwash",
+      "toilet"
+     ]
     },
     {
      "name": "洗濯水栓",
@@ -1722,7 +1739,7 @@ const CATALOG = {
  ],
  "presets": [
   {
-   "name": "工事",
+   "name": "リノベーション工事",
    "ids": [
     1,
     2,
@@ -1740,7 +1757,32 @@ const CATALOG = {
    "format": "renovation"
   },
   {
-   "name": "内装",
+   "name": "水回りリフォーム",
+   "ids": [
+    1,
+    3,
+    5,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "format": "mizumawari"
+  },
+  {
+   "name": "外装工事",
+   "ids": [
+    4,
+    5,
+    7,
+    11,
+    12
+   ],
+   "format": "exterior"
+  },
+  {
+   "name": "内装工事",
    "ids": [
     1,
     3,
@@ -1753,17 +1795,6 @@ const CATALOG = {
     12
    ],
    "format": "interior"
-  },
-  {
-   "name": "外装",
-   "ids": [
-    4,
-    5,
-    7,
-    11,
-    12
-   ],
-   "format": "exterior"
   }
  ],
  "plumbing": {
@@ -1781,36 +1812,7 @@ const CATALOG = {
     "name": "トイレ"
    }
   ],
-  "patterns": [
-   {
-    "name": "キッチンのみ",
-    "fixtures": [
-     "kitchen"
-    ]
-   },
-   {
-    "name": "キッチン＋風呂＆洗面器",
-    "fixtures": [
-     "kitchen",
-     "bathwash"
-    ]
-   },
-   {
-    "name": "キッチン＋風呂＆洗面器＋トイレ",
-    "fixtures": [
-     "kitchen",
-     "bathwash",
-     "toilet"
-    ]
-   },
-   {
-    "name": "キッチン＋トイレ",
-    "fixtures": [
-     "kitchen",
-     "toilet"
-    ]
-   }
-  ]
+  "patterns": []
  }
 }
 ;
@@ -1824,9 +1826,10 @@ const STRUCT = { wood: "木造", steel: "鉄骨造", rc: "RC造" };
 const FLOOR_LABEL = { 1: "平屋", 2: "2階建て", 3: "3階建て" };
 // Excelの形式(見本のExcelに合わせた2種類)。工事名の初期値も形式ごとに持つ
 const FORMATS = {
-  renovation: { name: "工事（リノベーション）", title: "リノベーション工事" },
-  interior: { name: "内装（水回り）", title: "水回りリフォーム工事" },
-  exterior: { name: "外装", title: "外装リフォーム工事" },
+  renovation: { name: "リノベーション工事", title: "リノベーション工事" },
+  mizumawari: { name: "水回りリフォーム", title: "水回りリフォーム工事" },
+  exterior: { name: "外装工事", title: "外装工事" },
+  interior: { name: "内装工事", title: "内装工事" },
 };
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
@@ -1834,7 +1837,7 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": 
 // ---- 画面の状態 ----
 let catalog = [];           // 大項目の一覧 [{id, name, items: [...]}]。items の形は backend/catalog.json を参照
 let presets = [];           // 工事の種類ごとの大項目 [{name, ids, format}]
-let plumbing = { fixtures: [], patterns: [] }; // 水回りの設備(キッチン等)と、よく使う組み合わせ
+let plumbing = { fixtures: [] }; // 水回りの設備(キッチン等)
 const selected = new Set(); // 選択中の大項目 id
 const openCats = new Set(); // 内訳で開いている大項目 id
 const fixturesOn = new Set(); // 水回りで選択中の設備のキー(kitchen など)
@@ -1854,8 +1857,8 @@ const structLabel = () => `${STRUCT[structure]}・${FLOOR_LABEL[floors]}`;
 // 数量は案件ごとに手で入力する。未入力(空)の項目は内訳で黄色にして、サマリに件数を出す
 const needsQty = it => !it.group && (it.qty == null || it.qty === "");
 
-// 選択中の工事に水回りの項目が含まれるか(なければ「水回りの範囲」は出さない)
-const hasFixtureItems = () => selectedCats().some(c => c.items.some(i => i.fixtures && (!i.minFloors || i.minFloors <= floors)));
+// 「水回りリフォーム」で、選択中の工事に水回りの項目が含まれるときだけ、設備の選択を出す。他の種類では設備はすべて対象
+const hasFixtureItems = () => format === "mizumawari" && selectedCats().some(c => c.items.some(i => i.fixtures && (!i.minFloors || i.minFloors <= floors)));
 const plumbingLabel = () => {
   if (!hasFixtureItems()) return "";
   const names = plumbing.fixtures.filter(f => fixturesOn.has(f.key)).map(f => f.name);
@@ -1881,13 +1884,11 @@ const icon = id => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[id] || I
 
 const sameSet = (a, b) => a.size === b.size && [...a].every(x => b.has(x));
 
-// 水回りの範囲: よく使う組み合わせのボタンと、設備ごとのチェックボックス
+// 水回りの設備(水回りリフォームのときだけ表示)のチェックボックス
 function renderPlumbing() {
   const box = $("#plumbing");
   box.hidden = !hasFixtureItems();
   if (box.hidden) return;
-  $("#patterns").innerHTML = plumbing.patterns.map((p, i) =>
-    `<button type="button" data-i="${i}" class="${sameSet(new Set(p.fixtures), fixturesOn) ? "on" : ""}">${esc(p.name)}</button>`).join("");
   $("#fixtures").innerHTML = plumbing.fixtures.map(f =>
     `<label><input type="checkbox" data-key="${f.key}" ${fixturesOn.has(f.key) ? "checked" : ""}>${esc(f.name)}</label>`).join("");
 }
@@ -1903,6 +1904,7 @@ function setFormat(k) {
   const t = $("[data-k=work_title]");
   if (t && Object.values(FORMATS).some(f => f.title === t.value.trim())) t.value = FORMATS[k].title;
   format = k;
+  plumbing.fixtures.forEach(f => fixturesOn.add(f.key)); // 設備は、種類を変えるたびにすべて対象に戻す
   const p = presets.find(x => x.format === k);
   if (p) { selected.clear(); p.ids.forEach(id => selected.add(id)); }
   rerender();
@@ -1994,13 +1996,7 @@ $("#cats").addEventListener("change", e => {
   rerender();
 });
 
-// 水回り: 組み合わせのボタンで設備のチェックをまとめて切り替え、チェックボックスで個別に変える
-$("#patterns").addEventListener("click", e => {
-  const i = e.target.dataset.i; if (i == null) return;
-  fixturesOn.clear(); plumbing.patterns[+i].fixtures.forEach(k => fixturesOn.add(k));
-  rerender();
-});
-
+// 水回り: 設備のチェックで、給排水設備工事・住宅設備工事などの内訳が変わる
 $("#fixtures").addEventListener("change", e => {
   const k = e.target.dataset.key;
   e.target.checked ? fixturesOn.add(k) : fixturesOn.delete(k);
@@ -2074,14 +2070,14 @@ function exportData() {
 
 // ---- 単体HTML版: ブラウザ内でExcelを生成して保存する(backend/excel_export.py の移植) ----
 // レイアウトを変えるときは excel_export.py とそろえる。出力の形は2種類(見本のExcelに合わせている):
-//   renovation(工事)・exterior(外装) … 見積書(8列) + 物件情報 / interior(内装) … 表紙 + 見積もり内訳(11列) + 物件情報
+//   renovation(リノベーション工事)・exterior(外装工事)・interior(内装工事) … 見積書(8列) + 物件情報 / mizumawari(水回りリフォーム) … 表紙 + 見積もり内訳(11列) + 物件情報
 // ExcelJS は文字列を数式として扱わない(数式は { formula } で明示する)ので、入力値はそのまま書いてよい。
 const XFONT = "ＭＳ 明朝";
 const THIN = { style: "thin" };
 const SEP = "　";
 const HEAD = { no: "No.", name: `名${SEP}${SEP}${SEP}称`, spec: `仕${SEP}${SEP}${SEP}様`, qty: "数量", unit: "単位", price: `単${SEP}価`, amount: `金${SEP}額`, note: `摘${SEP}要` };
 const DETAIL = `（内${SEP}訳${SEP}明${SEP}細）`;
-const DEFAULT_TITLE = { renovation: "リノベーション工事", interior: "水回りリフォーム工事", exterior: "外装リフォーム工事" };
+const DEFAULT_TITLE = { renovation: "リノベーション工事", mizumawari: "水回りリフォーム工事", exterior: "外装工事", interior: "内装工事" };
 const ALIGN = { no: "center", name: "left", spec: "left", qty: "right", unit: "center", price: "right", amount: "right", note: "left" };
 
 // 列の配置。spacers は「直前の列とひと続きに見せる細い余白列」(罫線の左右だけ外す)
@@ -2096,7 +2092,7 @@ const colL = n => { let s = ""; while (n > 0) { const m = (n - 1) % 26; s = Stri
 
 async function buildXlsx({ property: p, categories: cats }) {
   const wb = new ExcelJS.Workbook();
-  if (p.format === "interior") {
+  if (p.format === "mizumawari") {
     const cover = wb.addWorksheet("表紙");
     const est = wb.addWorksheet("見積もり内訳");
     const totalCell = writeMizumawari(est, p, cats, p.format);
@@ -2200,7 +2196,7 @@ function writeRenovation(ws, p, cats, fmt = "renovation") {
 }
 
 // 水回りリフォーム「見積もり内訳」シート: ヘッダ → 大項目ごとの内訳と小計 → 大項目の一覧 → 合計。合計セルの番地を返す
-function writeMizumawari(ws, p, cats, fmt = "interior") {
+function writeMizumawari(ws, p, cats, fmt = "mizumawari") {
   const money = "#,##0_);[Red](#,##0)", lay = LAYOUTS.mizumawari, s = makeSheet(ws, lay);
   ws.getColumn(12).width = 14.5; for (let c = 13; c <= 26; c++) ws.getColumn(c).width = 8;
   s.head(3, titleOf(p, fmt), p.company_name);
@@ -2278,7 +2274,7 @@ function writeCover(ws, p, totalCell) {
   });
 
   const remarks = p.remarks || "";
-  [[20, "工事名", p.work_title || DEFAULT_TITLE.interior, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", p.work_period, "F24:O24"],
+  [[20, "工事名", p.work_title || DEFAULT_TITLE.mizumawari, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", p.work_period, "F24:O24"],
    [26, "決済条件", null, "F26:O26"], [28, "有効期限", null, "F28:O28"], [30, "備考", remarks || null, "F30:O30"]].forEach(([r, label, value, rng]) => {
     put(`B${r}`, label, { h: "center", v: "middle", merge: `B${r}:D${r}` });
     put(`F${r}`, value || null, { h: "left", v: "middle", merge: rng });
@@ -2349,10 +2345,8 @@ function notify(msg) {
   catalog = cat.categories; presets = cat.presets || []; plumbing = cat.plumbing || plumbing;
   // ひな形に残っている別案件の数量は使わない。数量は案件ごとに手で入力する(「式」だけは 1)
   for (const c of catalog) for (const it of c.items) if (!it.group) it.qty = it.unit === "式" ? 1 : null;
-  catalog.forEach(c => selected.add(c.id)); // 初期は「工事」(すべての大項目)
-  // 初期は、いちばん範囲の広い組み合わせ(設備をいちばん多く含むもの)
-  const widest = plumbing.patterns.reduce((a, p) => (!a || p.fixtures.length > a.fixtures.length ? p : a), null);
-  (widest ? widest.fixtures : plumbing.fixtures.map(f => f.key)).forEach(k => fixturesOn.add(k));
+  catalog.forEach(c => selected.add(c.id)); // 初期は「リノベーション工事」(すべての大項目)
+  plumbing.fixtures.forEach(f => fixturesOn.add(f.key)); // 初期は設備すべて
   rerender();
 })();
 

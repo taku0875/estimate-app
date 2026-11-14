@@ -88,7 +88,7 @@ class Property(BaseModel):
     floors: Annotated[int, Field(ge=1, le=3)] = 2
     plumbing: ShortText = ""  # 水回りの範囲(例: キッチン＋トイレ)
     remarks: LongText = ""
-    format: Literal["renovation", "interior", "exterior"] = "renovation"  # 工事の種類=Excelの形(工事・内装・外装)
+    format: Literal["renovation", "mizumawari", "exterior", "interior"] = "renovation"  # 工事の種類=Excelの形(リノベーション工事・水回りリフォーム・外装工事・内装工事)
 
 
 class ExportRequest(BaseModel):
@@ -119,7 +119,7 @@ class Preset(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: Annotated[str, Field(max_length=100)]
     ids: list[int] = Field(max_length=MAX_CATEGORIES)
-    format: Literal["renovation", "interior", "exterior"] | None = None  # この種類(工事・内装・外装)のキー
+    format: Literal["renovation", "mizumawari", "exterior", "interior"] | None = None  # この種類(工事・内装・外装)のキー
 
 
 class Fixture(BaseModel):
@@ -139,7 +139,7 @@ class PlumbingPattern(BaseModel):
 class Plumbing(BaseModel):
     model_config = ConfigDict(extra="forbid")
     fixtures: list[Fixture] = Field(max_length=10)
-    patterns: list[PlumbingPattern] = Field(max_length=20)
+    patterns: list[PlumbingPattern] = Field(default_factory=list, max_length=20)  # 画面では使わない(旧版の名残)
 
 
 class Catalog(BaseModel):
