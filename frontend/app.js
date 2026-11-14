@@ -141,7 +141,9 @@ function renderSummary(cats) {
   const todo = items.filter(needsQty).length;
   const pl = plumbingLabel();
   $("#sStruct").textContent = structLabel();
-  $("#sPlumb").textContent = FORMATS[format].name + (pl ? `（${pl}）` : ""); // 選んだ工事の種類(水回りリフォームは設備も)
+  $("#sType").textContent = FORMATS[format].name;
+  $("#sFixRow").hidden = format !== "mizumawari"; // 水回りリフォームのときだけ、選んだ設備を出す
+  $("#sPlumb").textContent = pl || "なし";
   $("#sWorks").textContent = `${cats.length}工事`;
   $("#sItems").textContent = `${items.length}項目`;
   $("#sTodo").textContent = todo ? `${todo}項目` : "なし";
