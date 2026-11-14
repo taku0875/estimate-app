@@ -1,7 +1,9 @@
 """見積依頼書(Excel)の生成。出力の形は2種類あり、それぞれ見本のExcelの体裁に合わせている。
 
-  renovation  「リノベーション工事_見積依頼書.xlsx」 … 見積書(8列) + 物件情報
-  mizumawari  「水回りリフォーム工事 見積書.xlsx」   … 表紙 + 見積もり内訳(11列) + 物件情報
+  renovation(工事)・exterior(外装)
+              「リノベーション工事_見積依頼書.xlsx」 … 見積書(8列) + 物件情報
+  interior(内装)
+              「水回りリフォーム工事 見積書.xlsx」   … 表紙 + 見積もり内訳(11列) + 物件情報
 
 単価は業者が入力する前提のため空欄にし、金額・小計・合計は数式にしてある。
 ブラウザ版(web/export_xlsx.js)も同じレイアウトで作っているので、変えるときは両方そろえる。
@@ -20,8 +22,8 @@ from openpyxl.styles import Alignment, Border, Font, Side
 FONT = "ＭＳ 明朝"
 THIN = Side(style="thin")
 FLOOR_LABELS = {1: "平屋", 2: "2階建て", 3: "3階建て"}
-FORMATS = ("renovation", "mizumawari")
-DEFAULT_TITLE = {"renovation": "リノベーション工事", "mizumawari": "水回りリフォーム工事"}
+FORMATS = ("renovation", "interior", "exterior")
+DEFAULT_TITLE = {"renovation": "リノベーション工事", "interior": "水回りリフォーム工事", "exterior": "外装リフォーム工事"}
 
 SEP = "　"  # 全角スペース(見本の見出しの体裁)
 HEAD = {"no": "No.", "name": f"名{SEP*3}称", "spec": f"仕{SEP*3}様", "qty": "数量", "unit": "単位",
@@ -72,14 +74,14 @@ def build_workbook(data: dict) -> BytesIO:
     fmt = prop.get("format") if prop.get("format") in FORMATS else "renovation"
     wb = Workbook()
     ws = wb.active
-    if fmt == "mizumawari":
+    if fmt == "interior":
         ws.title = "表紙"
         est = wb.create_sheet("見積もり内訳")
-        total_cell = _write_mizumawari(est, prop, data["categories"])
+        total_cell = _write_mizumawari(est, prop, data["categories"], fmt)
         _write_cover(ws, prop, total_cell)
     else:
         ws.title = "見積書"
-        _write_renovation(ws, prop, data["categories"])
+        _write_renovation(ws, prop, data["categories"], fmt)
     _write_property_sheet(wb.create_sheet("物件情報"), prop)
     buf = BytesIO()
     wb.save(buf)
@@ -142,7 +144,7 @@ class Sheet:
         self.put(row, "amount", fmt=money, align="right", formula=f'=IF({p}{row}="","",ROUND({q}{row}*{p}{row},0))')
         self.put(row, "note", it.get("note") or None)
 
-    def head(self, row, title_text, company, vendor):
+    def head(self, row, title_text, company):
         ws, lay = self.ws, self.lay
         ws.row_dimensions[1].height = 30
         t = ws.cell(1, 2, title_text)
@@ -150,8 +152,6 @@ class Sheet:
         t.font = _font(16, True)
         t.alignment = Alignment(vertical="center")
         ws.row_dimensions[2].height = 21
-        if vendor:
-            self.put(2, "name", f"{vendor} 御中")
         if company:
             ws.merge_cells(start_row=2, start_column=lay.cols["price"], end_row=2, end_column=lay.last)
             self.put(2, "price", company, align="right")
@@ -189,10 +189,10 @@ def _page(ws, orientation, last_col, last_row, title_row=None):
 
 # ---------------------------------------------------------------- リノベーション工事(見積書シート)
 
-def _write_renovation(ws, prop, cats):
+def _write_renovation(ws, prop, cats, fmt="renovation"):
     money = "#,##0\\円"
     s = Sheet(ws, RENOVATION)
-    s.head(3, _title(prop, "renovation"), prop.get("company_name"), prop.get("vendor_name"))
+    s.head(3, _title(prop, fmt), prop.get("company_name"))
 
     # 大項目の一覧(金額はあとで各小計への参照を入れる)
     s.detail_header(4)
@@ -248,13 +248,13 @@ def _write_renovation(ws, prop, cats):
 
 # ---------------------------------------------------------------- 水回りリフォーム(表紙 + 見積もり内訳)
 
-def _write_mizumawari(ws, prop, cats):
+def _write_mizumawari(ws, prop, cats, fmt="interior"):
     """見積もり内訳シートを書き、合計セルの番地(表紙から参照する)を返す。"""
     money = "#,##0_);[Red](#,##0)"
     s = Sheet(ws, MIZUMAWARI)
     for col in range(12, 27):  # 見本は L 列以降にも幅を持たせている
         ws.column_dimensions[_col(col)].width = 14.5 if col == 12 else 8
-    s.head(3, _title(prop, "mizumawari"), prop.get("company_name"), prop.get("vendor_name"))
+    s.head(3, _title(prop, fmt), prop.get("company_name"))
     s.detail_header(4)
 
     row, subtotal_rows = 5, []
@@ -368,7 +368,7 @@ def _write_cover(ws, prop, total_cell):
 
     # 工事名・場所など
     remarks = prop.get("remarks") or ""
-    rows = [(20, "工事名", prop.get("work_title") or DEFAULT_TITLE["mizumawari"], "F20:U20"),
+    rows = [(20, "工事名", prop.get("work_title") or DEFAULT_TITLE["interior"], "F20:U20"),
             (22, "工事場所", prop.get("address"), "F22:O22"),
             (24, "工期", prop.get("work_period"), "F24:O24"),
             (26, "決済条件", None, "F26:O26"),
@@ -408,7 +408,6 @@ def _write_property_sheet(ps, prop):
         ("物件所在地", prop.get("address")),
         ("構造・工法", prop.get("structure")),
         ("依頼元", prop.get("company_name")),
-        ("提出先（業者）", prop.get("vendor_name")),
         ("見積提出期限", prop.get("due_date")),
         ("工事希望時期", prop.get("work_period")),
         ("階数", FLOOR_LABELS.get(prop.get("floors"))),
@@ -423,9 +422,9 @@ def _write_property_sheet(ps, prop):
         if isinstance(b.value, str):
             b.data_type = "s"
         b.font = _font()
-        b.alignment = Alignment(wrap_text=True, vertical="center" if r != 13 else "top")
+        b.alignment = Alignment(wrap_text=True, vertical="center" if r != 12 else "top")
         a.alignment = Alignment(vertical="center")
         a.border = b.border = box
         ps.row_dimensions[r].height = 21
-    ps.row_dimensions[13].height = 63  # 備考
+    ps.row_dimensions[12].height = 63  # 備考
     ps.cell(len(rows) + 4, 1, "※ 単価・摘要をご記入ください。金額・小計・合計は自動計算されます。").font = _font(10)

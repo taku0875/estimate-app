@@ -7,13 +7,17 @@ const API = (window.APP_CONFIG && window.APP_CONFIG.API_BASE || "").replace(/\/$
 const STRUCT = { wood: "木造", steel: "鉄骨造", rc: "RC造" };
 const FLOOR_LABEL = { 1: "平屋", 2: "2階建て", 3: "3階建て" };
 // Excelの形式(見本のExcelに合わせた2種類)。工事名の初期値も形式ごとに持つ
-const FORMATS = { renovation: { name: "リノベーション工事", title: "リノベーション工事" }, mizumawari: { name: "水回りリフォーム", title: "水回りリフォーム工事" } };
+const FORMATS = {
+  renovation: { name: "工事（リノベーション）", title: "リノベーション工事" },
+  interior: { name: "内装（水回り）", title: "水回りリフォーム工事" },
+  exterior: { name: "外装", title: "外装リフォーム工事" },
+};
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
 
 // ---- 画面の状態 ----
 let catalog = [];           // 大項目の一覧 [{id, name, items: [...]}]。items の形は backend/catalog.json を参照
-let presets = [];           // 工事タイプ [{name, ids}]
+let presets = [];           // 工事の種類ごとの大項目 [{name, ids, format}]
 let plumbing = { fixtures: [], patterns: [] }; // 水回りの設備(キッチン等)と、よく使う組み合わせ
 const selected = new Set(); // 選択中の大項目 id
 const openCats = new Set(); // 内訳で開いている大項目 id
@@ -61,12 +65,6 @@ const icon = id => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[id] || I
 
 const sameSet = (a, b) => a.size === b.size && [...a].every(x => b.has(x));
 
-// 工事タイプのボタン。今の選択と一致するタイプを強調する
-function renderTypes() {
-  $("#types").innerHTML = presets.map((p, i) =>
-    `<button type="button" data-p="${i}" class="${sameSet(new Set(p.ids), selected) ? "on" : ""}">${esc(p.name)}</button>`).join("");
-}
-
 // 水回りの範囲: よく使う組み合わせのボタンと、設備ごとのチェックボックス
 function renderPlumbing() {
   const box = $("#plumbing");
@@ -78,23 +76,24 @@ function renderPlumbing() {
     `<label><input type="checkbox" data-key="${f.key}" ${fixturesOn.has(f.key) ? "checked" : ""}>${esc(f.name)}</label>`).join("");
 }
 
-// Excelの形式のボタン
+// 工事の種類(=Excelの形式)のボタン
 function renderFormats() {
   $("#formats").innerHTML = Object.entries(FORMATS).map(([k, f]) =>
     `<button type="button" data-f="${k}" class="${k === format ? "on" : ""}">${f.name}</button>`).join("");
 }
 
-// 形式を切り替える。工事名が初期値のままなら、形式に合う初期値に直す
+// 種類を切り替える。その種類の大項目を選び、工事名が初期値のままなら種類に合う初期値に直す
 function setFormat(k) {
   const t = $("[data-k=work_title]");
   if (t && Object.values(FORMATS).some(f => f.title === t.value.trim())) t.value = FORMATS[k].title;
   format = k;
-  renderFormats(); renderTop();
+  const p = presets.find(x => x.format === k);
+  if (p) { selected.clear(); p.ids.forEach(id => selected.add(id)); }
+  rerender();
 }
 
 // 工事(大項目)の選択カード
 function renderCats() {
-  renderTypes();
   renderFormats();
   renderPlumbing();
   $("#cats").innerHTML = catalog.map(c => `
@@ -143,7 +142,7 @@ function renderTop() {
   const name = g("customer_name");
   $("#topTitle").textContent = name ? `${name} 様邸 ${g("work_title")}` : "新規の見積依頼";
   $("#topChips").innerHTML = [STRUCT[structure], FLOOR_LABEL[floors]].map(t => `<span class="chip">${t}</span>`).join("") +
-    (g("vendor_name") ? `<span class="chip vendor">提出先 ${esc(g("vendor_name"))}</span>` : "");
+    "";
 }
 
 // 右側の「出力の内容」と左ナビの補足
@@ -171,13 +170,6 @@ $("#floors").addEventListener("change", e => { floors = +e.target.value; rerende
 document.addEventListener("input", e => { if (e.target.dataset.k) renderTop(); }); // data-k: 文字の項目(お客様名など)
 
 // ---- イベント: 工事の選択 ----
-$("#types").addEventListener("click", e => {
-  const i = e.target.dataset.p; if (i == null) return;
-  selected.clear(); presets[+i].ids.forEach(id => selected.add(id));
-  if (presets[+i].format) setFormat(presets[+i].format);
-  rerender();
-});
-
 $("#formats").addEventListener("click", e => { const k = e.target.dataset.f; if (k) setFormat(k); });
 
 $("#cats").addEventListener("change", e => {
@@ -303,8 +295,7 @@ $("#saveCatalog").addEventListener("click", async () => {
   catalog = cat.categories; presets = cat.presets || []; plumbing = cat.plumbing || plumbing;
   // ひな形に残っている別案件の数量は使わない。数量は案件ごとに手で入力する(「式」だけは 1)
   for (const c of catalog) for (const it of c.items) if (!it.group) it.qty = it.unit === "式" ? 1 : null;
-  catalog.forEach(c => selected.add(c.id));
-  if (presets[0] && presets[0].format) format = presets[0].format;
+  catalog.forEach(c => selected.add(c.id)); // 初期は「工事」(すべての大項目)
   // 初期は、いちばん範囲の広い組み合わせ(設備をいちばん多く含むもの)
   const widest = plumbing.patterns.reduce((a, p) => (!a || p.fixtures.length > a.fixtures.length ? p : a), null);
   (widest ? widest.fixtures : plumbing.fixtures.map(f => f.key)).forEach(k => fixturesOn.add(k));

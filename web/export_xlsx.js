@@ -1,13 +1,13 @@
 // ---- 単体HTML版: ブラウザ内でExcelを生成して保存する(backend/excel_export.py の移植) ----
 // レイアウトを変えるときは excel_export.py とそろえる。出力の形は2種類(見本のExcelに合わせている):
-//   renovation … 見積書(8列) + 物件情報 / mizumawari … 表紙 + 見積もり内訳(11列) + 物件情報
+//   renovation(工事)・exterior(外装) … 見積書(8列) + 物件情報 / interior(内装) … 表紙 + 見積もり内訳(11列) + 物件情報
 // ExcelJS は文字列を数式として扱わない(数式は { formula } で明示する)ので、入力値はそのまま書いてよい。
 const XFONT = "ＭＳ 明朝";
 const THIN = { style: "thin" };
 const SEP = "　";
 const HEAD = { no: "No.", name: `名${SEP}${SEP}${SEP}称`, spec: `仕${SEP}${SEP}${SEP}様`, qty: "数量", unit: "単位", price: `単${SEP}価`, amount: `金${SEP}額`, note: `摘${SEP}要` };
 const DETAIL = `（内${SEP}訳${SEP}明${SEP}細）`;
-const DEFAULT_TITLE = { renovation: "リノベーション工事", mizumawari: "水回りリフォーム工事" };
+const DEFAULT_TITLE = { renovation: "リノベーション工事", interior: "水回りリフォーム工事", exterior: "外装リフォーム工事" };
 const ALIGN = { no: "center", name: "left", spec: "left", qty: "right", unit: "center", price: "right", amount: "right", note: "left" };
 
 // 列の配置。spacers は「直前の列とひと続きに見せる細い余白列」(罫線の左右だけ外す)
@@ -22,12 +22,12 @@ const colL = n => { let s = ""; while (n > 0) { const m = (n - 1) % 26; s = Stri
 
 async function buildXlsx({ property: p, categories: cats }) {
   const wb = new ExcelJS.Workbook();
-  if (p.format === "mizumawari") {
+  if (p.format === "interior") {
     const cover = wb.addWorksheet("表紙");
     const est = wb.addWorksheet("見積もり内訳");
-    const totalCell = writeMizumawari(est, p, cats);
+    const totalCell = writeMizumawari(est, p, cats, p.format);
     writeCover(cover, p, totalCell);
-  } else writeRenovation(wb.addWorksheet("見積書"), p, cats);
+  } else writeRenovation(wb.addWorksheet("見積書"), p, cats, p.format);
   writePropertySheet(wb.addWorksheet("物件情報"), p);
   return wb.xlsx.writeBuffer();
 }
@@ -67,11 +67,10 @@ function makeSheet(ws, lay) {
     put(row, "amount", null, { fmt: money, align: "right", formula: `IF(${p}${row}="","",ROUND(${q}${row}*${p}${row},0))` });
     put(row, "note", it.note || null);
   };
-  const head = (row, titleText, company, vendor) => {
+  const head = (row, titleText, company) => {
     ws.getRow(1).height = 30;
     const t = ws.getCell(1, 2); t.value = titleText; t.font = xfont(16, true); t.alignment = { vertical: "middle" };
     ws.getRow(2).height = 21;
-    if (vendor) put(2, "name", `${vendor} 御中`);
     if (company) { ws.mergeCells(2, lay.cols.price, 2, lay.last); put(2, "price", company, { align: "right" }); }
     grid(row);
     for (const [k, text] of Object.entries(HEAD)) put(row, k, text, { bold: true, align: "center" });
@@ -92,9 +91,9 @@ function pageSetup(ws, orientation, lastCol, lastRow, titleRow) {
 }
 
 // リノベーション工事「見積書」シート: ヘッダ → 大項目の一覧 → 調整費 → 合計 → 大項目ごとの内訳と小計
-function writeRenovation(ws, p, cats) {
+function writeRenovation(ws, p, cats, fmt = "renovation") {
   const money = "#,##0\\円", lay = LAYOUTS.renovation, s = makeSheet(ws, lay);
-  s.head(3, titleOf(p, "renovation"), p.company_name, p.vendor_name);
+  s.head(3, titleOf(p, fmt), p.company_name);
 
   s.detailHeader(4);
   let row = 5; const summaryRows = [];
@@ -127,10 +126,10 @@ function writeRenovation(ws, p, cats) {
 }
 
 // 水回りリフォーム「見積もり内訳」シート: ヘッダ → 大項目ごとの内訳と小計 → 大項目の一覧 → 合計。合計セルの番地を返す
-function writeMizumawari(ws, p, cats) {
+function writeMizumawari(ws, p, cats, fmt = "interior") {
   const money = "#,##0_);[Red](#,##0)", lay = LAYOUTS.mizumawari, s = makeSheet(ws, lay);
   ws.getColumn(12).width = 14.5; for (let c = 13; c <= 26; c++) ws.getColumn(c).width = 8;
-  s.head(3, titleOf(p, "mizumawari"), p.company_name, p.vendor_name);
+  s.head(3, titleOf(p, fmt), p.company_name);
   s.detailHeader(4);
 
   let row = 5; const subtotalRows = [];
@@ -205,7 +204,7 @@ function writeCover(ws, p, totalCell) {
   });
 
   const remarks = p.remarks || "";
-  [[20, "工事名", p.work_title || DEFAULT_TITLE.mizumawari, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", p.work_period, "F24:O24"],
+  [[20, "工事名", p.work_title || DEFAULT_TITLE.interior, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", p.work_period, "F24:O24"],
    [26, "決済条件", null, "F26:O26"], [28, "有効期限", null, "F28:O28"], [30, "備考", remarks || null, "F30:O30"]].forEach(([r, label, value, rng]) => {
     put(`B${r}`, label, { h: "center", v: "middle", merge: `B${r}:D${r}` });
     put(`F${r}`, value || null, { h: "left", v: "middle", merge: rng });
@@ -226,15 +225,15 @@ function writePropertySheet(ps, p) {
   ps.getCell(1, 1).value = "物件情報（見積条件）"; ps.getCell(1, 1).font = xfont(16, true);
   const rows = [
     ["お客様名", p.customer_name], ["工事名", p.work_title], ["物件所在地", p.address], ["構造・工法", p.structure],
-    ["依頼元", p.company_name], ["提出先（業者）", p.vendor_name], ["見積提出期限", p.due_date], ["工事希望時期", p.work_period],
+    ["依頼元", p.company_name], ["見積提出期限", p.due_date], ["工事希望時期", p.work_period],
     ["階数", FLOOR_LABEL[p.floors]], ["水回りの範囲", p.plumbing], ["備考・特記事項", p.remarks],
   ];
   const box = { left: THIN, right: THIN, top: THIN, bottom: THIN };
   rows.forEach(([label, value], i) => {
     const r = i + 3, a = ps.getCell(r, 1), b = ps.getCell(r, 2);
     a.value = label; a.font = xfont(11, true); a.border = box; a.alignment = { vertical: "middle" };
-    b.value = value || null; b.font = xfont(); b.alignment = { wrapText: true, vertical: r === 13 ? "top" : "middle" }; b.border = box;
-    ps.getRow(r).height = r === 13 ? 63 : 21;
+    b.value = value || null; b.font = xfont(); b.alignment = { wrapText: true, vertical: r === 12 ? "top" : "middle" }; b.border = box;
+    ps.getRow(r).height = r === 12 ? 63 : 21;
   });
   const note = ps.getCell(rows.length + 4, 1);
   note.value = "※ 単価・摘要をご記入ください。金額・小計・合計は自動計算されます。"; note.font = xfont(10);
@@ -247,7 +246,7 @@ $("#export").addEventListener("click", async () => {
   btn.disabled = true; btn.textContent = "作成中…";
   try {
     const buf = await buildXlsx(data);
-    const filename = [p.customer_name || "お客様", p.work_title, "見積依頼書", p.vendor_name].filter(Boolean).join("_") + ".xlsx";
+    const filename = [p.customer_name || "お客様", p.work_title, "見積依頼書"].filter(Boolean).join("_") + ".xlsx";
     // claude.ai 上の公開ページでは保存機能(downloads)を使い、通常のWebサイトでは通常のダウンロードにする
     const downloads = window.claude && claude.use ? await claude.use("downloads").catch(() => null) : null;
     if (downloads) await downloads.save({ filename, data: buf });

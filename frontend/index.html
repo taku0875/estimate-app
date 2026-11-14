@@ -39,8 +39,7 @@
           <label>お客様名<input data-k="customer_name" placeholder="例: 山田太郎"></label>
           <label>工事名<input data-k="work_title" value="リノベーション工事"></label>
           <label class="wide">物件所在地<input data-k="address" placeholder="例: 札幌市中央区…"></label>
-          <label>依頼元（自社名）<input data-k="company_name"></label>
-          <label>提出先（業者名）<input data-k="vendor_name" placeholder="業者ごとに出力する場合に入力"></label>
+          <label>依頼元（自社名）<input data-k="company_name" value="株式会社石丸ハウスセンター"></label>
           <label>工事希望時期<input data-k="work_period" placeholder="例: 2026年12月〜"></label>
           <label>見積提出期限<input type="date" data-k="due_date"></label>
         </div>
@@ -69,12 +68,9 @@
       </section>
 
       <section class="card" id="works">
-        <div class="card-h"><h2>工事の選択</h2><span>タイプで初期選択し、カードで微調整できます</span></div>
-        <h3 class="lbl">工事タイプ</h3>
-        <div class="seg types" id="types"></div>
-
+        <div class="card-h"><h2>工事の選択</h2><span>種類を選んでから、カードで微調整できます</span></div>
         <div class="fmt">
-          <div class="plumb-h"><b>Excelの形式</b><span>工事タイプを選ぶと自動で切り替わります。ここで変えることもできます</span></div>
+          <div class="plumb-h"><b>工事の種類（Excelの形式）</b><span>選ぶと、その種類の工事が選ばれ、Excelの形も切り替わります。下のカードで微調整できます</span></div>
           <div class="seg" id="formats"></div>
         </div>
 

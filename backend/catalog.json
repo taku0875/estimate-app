@@ -1462,7 +1462,7 @@
     11,
     12
    ],
-   "format": "mizumawari"
+   "format": "interior"
   },
   {
    "name": "外装",
@@ -1473,7 +1473,7 @@
     11,
     12
    ],
-   "format": "renovation"
+   "format": "exterior"
   }
  ],
  "plumbing": {

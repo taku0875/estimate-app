@@ -8,8 +8,8 @@ import {
 } from "@/lib/domain";
 
 const EMPTY: Prop = {
-  customer_name: "", work_title: "リノベーション工事", address: "", company_name: "",
-  vendor_name: "", work_period: "", due_date: "", remarks: "",
+  customer_name: "", work_title: "リノベーション工事", address: "", company_name: "株式会社石丸ハウスセンター",
+  work_period: "", due_date: "", remarks: "",
 };
 
 export default function Estimator() {
@@ -44,7 +44,6 @@ export default function Estimator() {
         setPresets(cat.presets ?? []);
         setPlumbing(pl);
         setSelected(new Set(cats.map(c => c.id)));
-        if (cat.presets?.[0]?.format) setFormat(cat.presets[0].format);
         // 初期は、設備をいちばん多く含む組み合わせ
         const widest = pl.patterns.reduce<Plumbing["patterns"][number] | null>(
           (a, p) => (!a || p.fixtures.length > a.fixtures.length ? p : a), null);
@@ -95,6 +94,8 @@ export default function Estimator() {
 
   // 形式を切り替える。工事名が初期値のままなら、形式に合う初期値に直す
   const changeFormat = (k: ExcelFormat) => {
+    const p = presets.find(x => x.format === k);
+    if (p) setSelected(new Set(p.ids));
     setProp(p => (Object.values(FORMATS).some(f => f.title === p.work_title.trim()) ? { ...p, work_title: FORMATS[k].title } : p));
     setFormat(k);
   };
@@ -162,7 +163,6 @@ export default function Estimator() {
           <div className="crumb"><span>見積依頼</span><span className="sep">/</span><b>{title}</b></div>
           <div className="chips">
             <span className="chip">{STRUCT[structure]}</span><span className="chip">{FLOOR_LABEL[floors]}</span>
-            {prop.vendor_name.trim() && <span className="chip vendor">提出先 {prop.vendor_name.trim()}</span>}
           </div>
         </header>
 
@@ -174,7 +174,6 @@ export default function Estimator() {
               {field("work_title", "工事名")}
               {field("address", "物件所在地", { placeholder: "例: 札幌市中央区…" }, "wide")}
               {field("company_name", "依頼元（自社名）")}
-              {field("vendor_name", "提出先（業者名）", { placeholder: "業者ごとに出力する場合に入力" })}
               {field("work_period", "工事希望時期", { placeholder: "例: 2026年12月〜" })}
               {field("due_date", "見積提出期限", { type: "date" })}
             </div>
@@ -203,16 +202,9 @@ export default function Estimator() {
           </section>
 
           <section className="card" id="works">
-            <div className="card-h"><h2>工事の選択</h2><span>タイプで初期選択し、カードで微調整できます</span></div>
-            <h3 className="lbl">工事タイプ</h3>
-            <div className="seg types">
-              {presets.map(p => (
-                <button key={p.name} type="button" className={sameSet(new Set(p.ids), selected) ? "on" : ""}
-                  onClick={() => { setSelected(new Set(p.ids)); if (p.format) changeFormat(p.format); }}>{p.name}</button>
-              ))}
-            </div>
+            <div className="card-h"><h2>工事の選択</h2><span>種類を選んでから、カードで微調整できます</span></div>
             <div className="fmt">
-              <div className="plumb-h"><b>Excelの形式</b><span>工事タイプを選ぶと自動で切り替わります。ここで変えることもできます</span></div>
+              <div className="plumb-h"><b>工事の種類（Excelの形式）</b><span>選ぶと、その種類の工事が選ばれ、Excelの形も切り替わります。下のカードで微調整できます</span></div>
               <div className="seg">
                 {(Object.keys(FORMATS) as ExcelFormat[]).map(k => (
                   <button key={k} type="button" className={k === format ? "on" : ""} onClick={() => changeFormat(k)}>{FORMATS[k].name}</button>

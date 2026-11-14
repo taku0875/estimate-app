@@ -3,10 +3,11 @@ import type { Category, ExcelFormat, Item, Plumbing, Structure, Floors } from ".
 export const API = (process.env.NEXT_PUBLIC_API_BASE ?? "").replace(/\/$/, "");
 export const STRUCT: Record<Structure, string> = { wood: "木造", steel: "鉄骨造", rc: "RC造" };
 export const FLOOR_LABEL: Record<Floors, string> = { 1: "平屋", 2: "2階建て", 3: "3階建て" };
-// Excelの形式(見本のExcelに合わせた2種類)。工事名の初期値も形式ごとに持つ
+// 工事の種類(=Excelの形式)。工事名の初期値も種類ごとに持つ
 export const FORMATS: Record<ExcelFormat, { name: string; title: string }> = {
-  renovation: { name: "リノベーション工事", title: "リノベーション工事" },
-  mizumawari: { name: "水回りリフォーム", title: "水回りリフォーム工事" },
+  renovation: { name: "工事（リノベーション）", title: "リノベーション工事" },
+  interior: { name: "内装（水回り）", title: "水回りリフォーム工事" },
+  exterior: { name: "外装", title: "外装リフォーム工事" },
 };
 
 export type Cond = { structure: Structure; floors: Floors; fixturesOn: Set<string> };

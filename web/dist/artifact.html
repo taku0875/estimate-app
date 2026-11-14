@@ -215,8 +215,7 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
           <label>お客様名<input data-k="customer_name" placeholder="例: 山田太郎"></label>
           <label>工事名<input data-k="work_title" value="リノベーション工事"></label>
           <label class="wide">物件所在地<input data-k="address" placeholder="例: 札幌市中央区…"></label>
-          <label>依頼元（自社名）<input data-k="company_name"></label>
-          <label>提出先（業者名）<input data-k="vendor_name" placeholder="業者ごとに出力する場合に入力"></label>
+          <label>依頼元（自社名）<input data-k="company_name" value="株式会社石丸ハウスセンター"></label>
           <label>工事希望時期<input data-k="work_period" placeholder="例: 2026年12月〜"></label>
           <label>見積提出期限<input type="date" data-k="due_date"></label>
         </div>
@@ -245,12 +244,9 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
       </section>
 
       <section class="card" id="works">
-        <div class="card-h"><h2>工事の選択</h2><span>タイプで初期選択し、カードで微調整できます</span></div>
-        <h3 class="lbl">工事タイプ</h3>
-        <div class="seg types" id="types"></div>
-
+        <div class="card-h"><h2>工事の選択</h2><span>種類を選んでから、カードで微調整できます</span></div>
         <div class="fmt">
-          <div class="plumb-h"><b>Excelの形式</b><span>工事タイプを選ぶと自動で切り替わります。ここで変えることもできます</span></div>
+          <div class="plumb-h"><b>工事の種類（Excelの形式）</b><span>選ぶと、その種類の工事が選ばれ、Excelの形も切り替わります。下のカードで微調整できます</span></div>
           <div class="seg" id="formats"></div>
         </div>
 
@@ -1756,7 +1752,7 @@ const CATALOG = {
     11,
     12
    ],
-   "format": "mizumawari"
+   "format": "interior"
   },
   {
    "name": "外装",
@@ -1767,7 +1763,7 @@ const CATALOG = {
     11,
     12
    ],
-   "format": "renovation"
+   "format": "exterior"
   }
  ],
  "plumbing": {
@@ -1827,13 +1823,17 @@ const API = (window.APP_CONFIG && window.APP_CONFIG.API_BASE || "").replace(/\/$
 const STRUCT = { wood: "木造", steel: "鉄骨造", rc: "RC造" };
 const FLOOR_LABEL = { 1: "平屋", 2: "2階建て", 3: "3階建て" };
 // Excelの形式(見本のExcelに合わせた2種類)。工事名の初期値も形式ごとに持つ
-const FORMATS = { renovation: { name: "リノベーション工事", title: "リノベーション工事" }, mizumawari: { name: "水回りリフォーム", title: "水回りリフォーム工事" } };
+const FORMATS = {
+  renovation: { name: "工事（リノベーション）", title: "リノベーション工事" },
+  interior: { name: "内装（水回り）", title: "水回りリフォーム工事" },
+  exterior: { name: "外装", title: "外装リフォーム工事" },
+};
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
 
 // ---- 画面の状態 ----
 let catalog = [];           // 大項目の一覧 [{id, name, items: [...]}]。items の形は backend/catalog.json を参照
-let presets = [];           // 工事タイプ [{name, ids}]
+let presets = [];           // 工事の種類ごとの大項目 [{name, ids, format}]
 let plumbing = { fixtures: [], patterns: [] }; // 水回りの設備(キッチン等)と、よく使う組み合わせ
 const selected = new Set(); // 選択中の大項目 id
 const openCats = new Set(); // 内訳で開いている大項目 id
@@ -1881,12 +1881,6 @@ const icon = id => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[id] || I
 
 const sameSet = (a, b) => a.size === b.size && [...a].every(x => b.has(x));
 
-// 工事タイプのボタン。今の選択と一致するタイプを強調する
-function renderTypes() {
-  $("#types").innerHTML = presets.map((p, i) =>
-    `<button type="button" data-p="${i}" class="${sameSet(new Set(p.ids), selected) ? "on" : ""}">${esc(p.name)}</button>`).join("");
-}
-
 // 水回りの範囲: よく使う組み合わせのボタンと、設備ごとのチェックボックス
 function renderPlumbing() {
   const box = $("#plumbing");
@@ -1898,23 +1892,24 @@ function renderPlumbing() {
     `<label><input type="checkbox" data-key="${f.key}" ${fixturesOn.has(f.key) ? "checked" : ""}>${esc(f.name)}</label>`).join("");
 }
 
-// Excelの形式のボタン
+// 工事の種類(=Excelの形式)のボタン
 function renderFormats() {
   $("#formats").innerHTML = Object.entries(FORMATS).map(([k, f]) =>
     `<button type="button" data-f="${k}" class="${k === format ? "on" : ""}">${f.name}</button>`).join("");
 }
 
-// 形式を切り替える。工事名が初期値のままなら、形式に合う初期値に直す
+// 種類を切り替える。その種類の大項目を選び、工事名が初期値のままなら種類に合う初期値に直す
 function setFormat(k) {
   const t = $("[data-k=work_title]");
   if (t && Object.values(FORMATS).some(f => f.title === t.value.trim())) t.value = FORMATS[k].title;
   format = k;
-  renderFormats(); renderTop();
+  const p = presets.find(x => x.format === k);
+  if (p) { selected.clear(); p.ids.forEach(id => selected.add(id)); }
+  rerender();
 }
 
 // 工事(大項目)の選択カード
 function renderCats() {
-  renderTypes();
   renderFormats();
   renderPlumbing();
   $("#cats").innerHTML = catalog.map(c => `
@@ -1963,7 +1958,7 @@ function renderTop() {
   const name = g("customer_name");
   $("#topTitle").textContent = name ? `${name} 様邸 ${g("work_title")}` : "新規の見積依頼";
   $("#topChips").innerHTML = [STRUCT[structure], FLOOR_LABEL[floors]].map(t => `<span class="chip">${t}</span>`).join("") +
-    (g("vendor_name") ? `<span class="chip vendor">提出先 ${esc(g("vendor_name"))}</span>` : "");
+    "";
 }
 
 // 右側の「出力の内容」と左ナビの補足
@@ -1991,13 +1986,6 @@ $("#floors").addEventListener("change", e => { floors = +e.target.value; rerende
 document.addEventListener("input", e => { if (e.target.dataset.k) renderTop(); }); // data-k: 文字の項目(お客様名など)
 
 // ---- イベント: 工事の選択 ----
-$("#types").addEventListener("click", e => {
-  const i = e.target.dataset.p; if (i == null) return;
-  selected.clear(); presets[+i].ids.forEach(id => selected.add(id));
-  if (presets[+i].format) setFormat(presets[+i].format);
-  rerender();
-});
-
 $("#formats").addEventListener("click", e => { const k = e.target.dataset.f; if (k) setFormat(k); });
 
 $("#cats").addEventListener("change", e => {
@@ -2086,14 +2074,14 @@ function exportData() {
 
 // ---- 単体HTML版: ブラウザ内でExcelを生成して保存する(backend/excel_export.py の移植) ----
 // レイアウトを変えるときは excel_export.py とそろえる。出力の形は2種類(見本のExcelに合わせている):
-//   renovation … 見積書(8列) + 物件情報 / mizumawari … 表紙 + 見積もり内訳(11列) + 物件情報
+//   renovation(工事)・exterior(外装) … 見積書(8列) + 物件情報 / interior(内装) … 表紙 + 見積もり内訳(11列) + 物件情報
 // ExcelJS は文字列を数式として扱わない(数式は { formula } で明示する)ので、入力値はそのまま書いてよい。
 const XFONT = "ＭＳ 明朝";
 const THIN = { style: "thin" };
 const SEP = "　";
 const HEAD = { no: "No.", name: `名${SEP}${SEP}${SEP}称`, spec: `仕${SEP}${SEP}${SEP}様`, qty: "数量", unit: "単位", price: `単${SEP}価`, amount: `金${SEP}額`, note: `摘${SEP}要` };
 const DETAIL = `（内${SEP}訳${SEP}明${SEP}細）`;
-const DEFAULT_TITLE = { renovation: "リノベーション工事", mizumawari: "水回りリフォーム工事" };
+const DEFAULT_TITLE = { renovation: "リノベーション工事", interior: "水回りリフォーム工事", exterior: "外装リフォーム工事" };
 const ALIGN = { no: "center", name: "left", spec: "left", qty: "right", unit: "center", price: "right", amount: "right", note: "left" };
 
 // 列の配置。spacers は「直前の列とひと続きに見せる細い余白列」(罫線の左右だけ外す)
@@ -2108,12 +2096,12 @@ const colL = n => { let s = ""; while (n > 0) { const m = (n - 1) % 26; s = Stri
 
 async function buildXlsx({ property: p, categories: cats }) {
   const wb = new ExcelJS.Workbook();
-  if (p.format === "mizumawari") {
+  if (p.format === "interior") {
     const cover = wb.addWorksheet("表紙");
     const est = wb.addWorksheet("見積もり内訳");
-    const totalCell = writeMizumawari(est, p, cats);
+    const totalCell = writeMizumawari(est, p, cats, p.format);
     writeCover(cover, p, totalCell);
-  } else writeRenovation(wb.addWorksheet("見積書"), p, cats);
+  } else writeRenovation(wb.addWorksheet("見積書"), p, cats, p.format);
   writePropertySheet(wb.addWorksheet("物件情報"), p);
   return wb.xlsx.writeBuffer();
 }
@@ -2153,11 +2141,10 @@ function makeSheet(ws, lay) {
     put(row, "amount", null, { fmt: money, align: "right", formula: `IF(${p}${row}="","",ROUND(${q}${row}*${p}${row},0))` });
     put(row, "note", it.note || null);
   };
-  const head = (row, titleText, company, vendor) => {
+  const head = (row, titleText, company) => {
     ws.getRow(1).height = 30;
     const t = ws.getCell(1, 2); t.value = titleText; t.font = xfont(16, true); t.alignment = { vertical: "middle" };
     ws.getRow(2).height = 21;
-    if (vendor) put(2, "name", `${vendor} 御中`);
     if (company) { ws.mergeCells(2, lay.cols.price, 2, lay.last); put(2, "price", company, { align: "right" }); }
     grid(row);
     for (const [k, text] of Object.entries(HEAD)) put(row, k, text, { bold: true, align: "center" });
@@ -2178,9 +2165,9 @@ function pageSetup(ws, orientation, lastCol, lastRow, titleRow) {
 }
 
 // リノベーション工事「見積書」シート: ヘッダ → 大項目の一覧 → 調整費 → 合計 → 大項目ごとの内訳と小計
-function writeRenovation(ws, p, cats) {
+function writeRenovation(ws, p, cats, fmt = "renovation") {
   const money = "#,##0\\円", lay = LAYOUTS.renovation, s = makeSheet(ws, lay);
-  s.head(3, titleOf(p, "renovation"), p.company_name, p.vendor_name);
+  s.head(3, titleOf(p, fmt), p.company_name);
 
   s.detailHeader(4);
   let row = 5; const summaryRows = [];
@@ -2213,10 +2200,10 @@ function writeRenovation(ws, p, cats) {
 }
 
 // 水回りリフォーム「見積もり内訳」シート: ヘッダ → 大項目ごとの内訳と小計 → 大項目の一覧 → 合計。合計セルの番地を返す
-function writeMizumawari(ws, p, cats) {
+function writeMizumawari(ws, p, cats, fmt = "interior") {
   const money = "#,##0_);[Red](#,##0)", lay = LAYOUTS.mizumawari, s = makeSheet(ws, lay);
   ws.getColumn(12).width = 14.5; for (let c = 13; c <= 26; c++) ws.getColumn(c).width = 8;
-  s.head(3, titleOf(p, "mizumawari"), p.company_name, p.vendor_name);
+  s.head(3, titleOf(p, fmt), p.company_name);
   s.detailHeader(4);
 
   let row = 5; const subtotalRows = [];
@@ -2291,7 +2278,7 @@ function writeCover(ws, p, totalCell) {
   });
 
   const remarks = p.remarks || "";
-  [[20, "工事名", p.work_title || DEFAULT_TITLE.mizumawari, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", p.work_period, "F24:O24"],
+  [[20, "工事名", p.work_title || DEFAULT_TITLE.interior, "F20:U20"], [22, "工事場所", p.address, "F22:O22"], [24, "工期", p.work_period, "F24:O24"],
    [26, "決済条件", null, "F26:O26"], [28, "有効期限", null, "F28:O28"], [30, "備考", remarks || null, "F30:O30"]].forEach(([r, label, value, rng]) => {
     put(`B${r}`, label, { h: "center", v: "middle", merge: `B${r}:D${r}` });
     put(`F${r}`, value || null, { h: "left", v: "middle", merge: rng });
@@ -2312,15 +2299,15 @@ function writePropertySheet(ps, p) {
   ps.getCell(1, 1).value = "物件情報（見積条件）"; ps.getCell(1, 1).font = xfont(16, true);
   const rows = [
     ["お客様名", p.customer_name], ["工事名", p.work_title], ["物件所在地", p.address], ["構造・工法", p.structure],
-    ["依頼元", p.company_name], ["提出先（業者）", p.vendor_name], ["見積提出期限", p.due_date], ["工事希望時期", p.work_period],
+    ["依頼元", p.company_name], ["見積提出期限", p.due_date], ["工事希望時期", p.work_period],
     ["階数", FLOOR_LABEL[p.floors]], ["水回りの範囲", p.plumbing], ["備考・特記事項", p.remarks],
   ];
   const box = { left: THIN, right: THIN, top: THIN, bottom: THIN };
   rows.forEach(([label, value], i) => {
     const r = i + 3, a = ps.getCell(r, 1), b = ps.getCell(r, 2);
     a.value = label; a.font = xfont(11, true); a.border = box; a.alignment = { vertical: "middle" };
-    b.value = value || null; b.font = xfont(); b.alignment = { wrapText: true, vertical: r === 13 ? "top" : "middle" }; b.border = box;
-    ps.getRow(r).height = r === 13 ? 63 : 21;
+    b.value = value || null; b.font = xfont(); b.alignment = { wrapText: true, vertical: r === 12 ? "top" : "middle" }; b.border = box;
+    ps.getRow(r).height = r === 12 ? 63 : 21;
   });
   const note = ps.getCell(rows.length + 4, 1);
   note.value = "※ 単価・摘要をご記入ください。金額・小計・合計は自動計算されます。"; note.font = xfont(10);
@@ -2333,7 +2320,7 @@ $("#export").addEventListener("click", async () => {
   btn.disabled = true; btn.textContent = "作成中…";
   try {
     const buf = await buildXlsx(data);
-    const filename = [p.customer_name || "お客様", p.work_title, "見積依頼書", p.vendor_name].filter(Boolean).join("_") + ".xlsx";
+    const filename = [p.customer_name || "お客様", p.work_title, "見積依頼書"].filter(Boolean).join("_") + ".xlsx";
     // claude.ai 上の公開ページでは保存機能(downloads)を使い、通常のWebサイトでは通常のダウンロードにする
     const downloads = window.claude && claude.use ? await claude.use("downloads").catch(() => null) : null;
     if (downloads) await downloads.save({ filename, data: buf });
@@ -2362,8 +2349,7 @@ function notify(msg) {
   catalog = cat.categories; presets = cat.presets || []; plumbing = cat.plumbing || plumbing;
   // ひな形に残っている別案件の数量は使わない。数量は案件ごとに手で入力する(「式」だけは 1)
   for (const c of catalog) for (const it of c.items) if (!it.group) it.qty = it.unit === "式" ? 1 : null;
-  catalog.forEach(c => selected.add(c.id));
-  if (presets[0] && presets[0].format) format = presets[0].format;
+  catalog.forEach(c => selected.add(c.id)); // 初期は「工事」(すべての大項目)
   // 初期は、いちばん範囲の広い組み合わせ(設備をいちばん多く含むもの)
   const widest = plumbing.patterns.reduce((a, p) => (!a || p.fixtures.length > a.fixtures.length ? p : a), null);
   (widest ? widest.fixtures : plumbing.fixtures.map(f => f.key)).forEach(k => fixturesOn.add(k));
