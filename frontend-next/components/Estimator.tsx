@@ -155,8 +155,8 @@ export default function Estimator() {
           <div><b>TSUMIKI</b></div>
         </div>
         <nav id="nav">
-          {[["property", "1", "物件情報", structLabel], ["works", "2", "工事の選択", `${cats.length}工事を選択`], ["detail", "3", "内訳の確認", `${items.length}項目`]].map(([id, n, t, s]) => (
-            <a key={id} href={`#${id}`} className={active === id ? "on" : ""}><i>{n}</i><span>{t}<small>{s}</small></span></a>
+          {[["property", "1", "物件情報"], ["works", "2", "工事の選択"], ["detail", "3", "内訳の確認"]].map(([id, n, t]) => (
+            <a key={id} href={`#${id}`} className={active === id ? "on" : ""}><i>{n}</i><span>{t}</span></a>
           ))}
         </nav>
       </aside>

@@ -146,9 +146,6 @@ function renderSummary(cats) {
   $("#sItems").textContent = `${items.length}項目`;
   $("#sTodo").textContent = todo ? `${todo}項目` : "なし";
   $("#sTodo").className = todo ? "warn" : "ok";
-  $("#navP").textContent = structLabel();
-  $("#navW").textContent = `${cats.length}工事を選択`;
-  $("#navD").textContent = `${items.length}項目`;
 }
 
 function rerender() { renderCats(); renderDetail(); }

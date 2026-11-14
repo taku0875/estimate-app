@@ -206,9 +206,9 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
       <div><b>TSUMIKI</b></div>
     </div>
     <nav id="nav">
-      <a href="#property" class="on"><i>1</i><span>物件情報<small id="navP"></small></span></a>
-      <a href="#works"><i>2</i><span>工事の選択<small id="navW"></small></span></a>
-      <a href="#detail"><i>3</i><span>内訳の確認<small id="navD"></small></span></a>
+      <a href="#property" class="on"><i>1</i><span>物件情報</span></a>
+      <a href="#works"><i>2</i><span>工事の選択</span></a>
+      <a href="#detail"><i>3</i><span>内訳の確認</span></a>
     </nav>
   </aside>
 
@@ -1978,9 +1978,6 @@ function renderSummary(cats) {
   $("#sItems").textContent = `${items.length}項目`;
   $("#sTodo").textContent = todo ? `${todo}項目` : "なし";
   $("#sTodo").className = todo ? "warn" : "ok";
-  $("#navP").textContent = structLabel();
-  $("#navW").textContent = `${cats.length}工事を選択`;
-  $("#navD").textContent = `${items.length}項目`;
 }
 
 function rerender() { renderCats(); renderDetail(); }
