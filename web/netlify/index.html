@@ -230,6 +230,7 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
             </div>
           </div>
           <label class="wide">物件所在地<input data-k="address" placeholder="例: 名古屋市中区…"></label>
+          <label>見積提出期限<input type="date" data-k="due_date"></label>
         </div>
 
         <label class="wide block">備考・特記事項（お客様への説明事項）<textarea data-k="remarks" rows="3" placeholder="搬入経路、工事時間の制限、既存設備の状況など"></textarea></label>
@@ -2281,7 +2282,7 @@ function writePropertySheet(ps, p) {
   ps.getCell(1, 1).value = "物件情報（見積条件）"; ps.getCell(1, 1).font = xfont(16, true);
   const rows = [
     ["お施主様名（法人の名称）", p.customer_company], ["お施主様名（個人の名前）", p.customer_name], ["物件所在地", p.address],
-    ["水回りの範囲", p.plumbing], ["備考・特記事項", p.remarks],
+    ["見積提出期限", dateJp(p.due_date)], ["水回りの範囲", p.plumbing], ["備考・特記事項", p.remarks],
   ];
   const box = { left: THIN, right: THIN, top: THIN, bottom: THIN };
   rows.forEach(([label, value], i) => {

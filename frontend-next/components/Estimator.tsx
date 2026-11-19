@@ -177,6 +177,7 @@ export default function Estimator() {
                 </div>
               </div>
               {field("address", "物件所在地", { placeholder: "例: 名古屋市中区…" }, "wide")}
+              {field("due_date", "見積提出期限", { type: "date" })}
             </div>
             <label className="wide block">備考・特記事項（お客様への説明事項）
               <textarea rows={3} value={prop.remarks} onChange={setP("remarks")} placeholder="搬入経路、工事時間の制限、既存設備の状況など" />
