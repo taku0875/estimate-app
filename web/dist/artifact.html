@@ -144,7 +144,8 @@ tr.todo td.q input{background:var(--amber-bg);border-color:var(--amber-line)}
 .sum-body h4{margin:0 0 8px;font-size:11px;color:var(--lime);font-weight:700;letter-spacing:.2em}
 dl{margin:0}dl>div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #2b2e27}
 dl>div:first-child{border-top:0}
-dt{color:#9aa08f;font-size:12px}dd{margin:0;font-weight:700;text-align:right}
+dt{color:#9aa08f;font-size:12px;white-space:nowrap}dd{margin:0;font-weight:700;text-align:right;white-space:nowrap;font-size:14px}
+#sFixRow,.fixrow{flex-direction:column;gap:3px!important}#sFixRow dd,.fixrow dd{text-align:left;font-size:13px}
 dd.warn{color:#ffd166}dd.ok{color:var(--lime-hi)}
 .sum-actions{display:flex;flex-direction:column;gap:8px}
 #status{color:#3f5a14;font-size:12px;min-height:18px}
