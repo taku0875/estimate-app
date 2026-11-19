@@ -143,7 +143,7 @@ function renderSummary(cats) {
   $("#sType").textContent = FORMATS[format].name;
   $("#sFixRow").hidden = format !== "mizumawari"; // 水回りリフォームのときだけ、選んだ設備を出す
   $("#sPlumb").textContent = pl || "なし";
-  $("#sWorks").textContent = `${cats.length}工事`;
+  $("#sWorks").textContent = `${cats.length}種`;
   $("#sItems").textContent = `${items.length}項目`;
   $("#sTodo").textContent = todo ? `${todo}項目` : "なし";
   $("#sTodo").className = todo ? "warn" : "ok";

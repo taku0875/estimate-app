@@ -265,9 +265,9 @@ export default function Estimator() {
           <dl>
             <div><dt>工事の種類</dt><dd>{FORMATS[format].name}</dd></div>
             {format === "mizumawari" && <div><dt>水回りの設備</dt><dd>{plLabel || "なし"}</dd></div>}
-            <div><dt>工事</dt><dd>{cats.length}工事</dd></div>
-            <div><dt>内訳項目</dt><dd>{items.length}項目</dd></div>
-            <div><dt>数量が未入力</dt><dd className={todo ? "warn" : "ok"}>{todo ? `${todo}項目` : "なし"}</dd></div>
+            <div><dt>工事</dt><dd>{cats.length}種</dd></div>
+            <div><dt>内訳</dt><dd>{items.length}項目</dd></div>
+            <div><dt>数量未入力</dt><dd className={todo ? "warn" : "ok"}>{todo ? `${todo}項目` : "なし"}</dd></div>
           </dl>
         </div>
         <div className="sum-actions">
