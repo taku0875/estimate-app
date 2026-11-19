@@ -172,11 +172,11 @@ export default function Estimator() {
               <div className="wide pair">
                 <span className="gl">お施主様名</span>
                 <div className="two">
-                  {field("customer_company", "法人の名称", { placeholder: "例: 株式会社〇〇" })}
-                  {field("customer_name", "個人の名前", { placeholder: "例: 山田太郎" })}
+                  {field("customer_company", "法人の名称", { placeholder: "例: 株式会社VIVANT" })}
+                  {field("customer_name", "個人の名前", { placeholder: "例: 乃木憂助" })}
                 </div>
               </div>
-              {field("address", "物件所在地", { placeholder: "例: 名古屋市中区…" }, "wide")}
+              {field("address", "物件所在地", { placeholder: "例: 島根県出雲市…" }, "wide")}
               {field("due_date", "見積提出期限", { type: "date" })}
             </div>
             <label className="wide block">備考・特記事項（お客様への説明事項）
