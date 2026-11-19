@@ -428,12 +428,7 @@ def _write_property_sheet(ps, prop):
         ("お施主様名（法人の名称）", prop.get("customer_company")),
         ("お施主様名（個人の名前）", prop.get("customer_name")),
         ("物件所在地", prop.get("address")),
-        ("構造・工法", prop.get("structure")),
-        ("着工予定日", _date(prop.get("start_date"))),
-        ("完工予定日", _date(prop.get("end_date"))),
         ("見積提出期限", _date(prop.get("due_date"))),
-        ("工事希望時期", prop.get("work_period")),
-        ("階数", FLOOR_LABELS.get(prop.get("floors"))),
         ("水回りの範囲", prop.get("plumbing")),
         ("備考・特記事項", prop.get("remarks")),
     ]

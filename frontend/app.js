@@ -129,7 +129,7 @@ function renderDetail() {
         <tbody>${c.items.map((it, i) => visible(it) ? itemRow(it, i) : "").join("")}</tbody>
       </table></div>
       <div class="tools"><button class="mini" data-act="add">＋ 項目を追加</button><button class="mini" data-act="addg">＋ 見出し(【 】)を追加</button></div>
-    </details>`).join("") : `<p class="empty">「工事の選択」で工事を選ぶと、内訳がここに表示されます。</p>`;
+    </details>`).join("") : `<p class="empty">「工事の種類」を選ぶと、内訳がここに表示されます。</p>`;
   renderSummary(cats);
   const n = cats.reduce((s, c) => s + visibleItems(c).length, 0);
   $("#status").textContent = `${cats.length}工事 / ${n}項目 を出力`;
@@ -140,7 +140,6 @@ function renderSummary(cats) {
   const items = cats.flatMap(visibleItems);
   const todo = items.filter(needsQty).length;
   const pl = plumbingLabel();
-  $("#sStruct").textContent = structLabel();
   $("#sType").textContent = FORMATS[format].name;
   $("#sFixRow").hidden = format !== "mizumawari"; // 水回りリフォームのときだけ、選んだ設備を出す
   $("#sPlumb").textContent = pl || "なし";
@@ -153,10 +152,9 @@ function renderSummary(cats) {
 function rerender() { renderCats(); renderDetail(); }
 
 // ---- イベント: 物件情報 ----
-$("#structures").addEventListener("change", e => { structure = e.target.value; rerender(); });
-$("#floors").addEventListener("change", e => { floors = +e.target.value; rerender(); });
+// (構造・階数の選択は画面から外してある。復活用は docs/復活用ストック.md)
 
-// ---- イベント: 工事の選択 ----
+// ---- イベント: 工事の種類 ----
 $("#formats").addEventListener("click", e => { const k = e.target.dataset.f; if (k) setFormat(k); });
 
 $("#cats").addEventListener("change", e => {
@@ -224,8 +222,6 @@ const navLinks = [...document.querySelectorAll("#nav a")];
 function propertyData() {
   const p = {};
   document.querySelectorAll("[data-k]").forEach(el => (p[el.dataset.k] = el.value));
-  p.floors = floors;
-  p.structure = STRUCT[structure];
   p.company_name = COMPANY; // 依頼元(自社名)は画面では入力しない
   p.plumbing = plumbingLabel();
   p.format = format;

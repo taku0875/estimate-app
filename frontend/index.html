@@ -19,7 +19,7 @@
     </div>
     <nav id="nav">
       <a href="#property" class="on"><i>1</i><span>物件情報</span></a>
-      <a href="#works"><i>2</i><span>工事の選択</span></a>
+      <a href="#works"><i>2</i><span>工事の種類</span></a>
       <a href="#detail"><i>3</i><span>内訳の確認</span></a>
     </nav>
   </aside>
@@ -42,39 +42,15 @@
             </div>
           </div>
           <label class="wide">物件所在地<input data-k="address" placeholder="例: 名古屋市中区…"></label>
-          <label>着工予定日<input type="date" data-k="start_date"></label>
-          <label>完工予定日<input type="date" data-k="end_date"></label>
-          <label>工事希望時期<input data-k="work_period" placeholder="例: 2026年12月〜"></label>
           <label>見積提出期限<input type="date" data-k="due_date"></label>
         </div>
 
-        <div class="split">
-          <div>
-            <h3>構造</h3>
-            <div class="seg" id="structures">
-              <label><input type="radio" name="structure" value="wood" checked>木造</label>
-              <label><input type="radio" name="structure" value="steel">鉄骨造</label>
-              <label><input type="radio" name="structure" value="rc">RC造</label>
-            </div>
-          </div>
-          <div>
-            <h3>階数</h3>
-            <div class="seg" id="floors">
-              <label><input type="radio" name="floors" value="1">平屋</label>
-              <label><input type="radio" name="floors" value="2" checked>2階建て</label>
-              <label><input type="radio" name="floors" value="3">3階建て</label>
-            </div>
-          </div>
-        </div>
-        <p class="hint">構造と階数に合わせて、工事内訳が絞り込まれます。数量は、内訳の表で直接入力します。</p>
-
-        <label class="wide block">備考・特記事項（お取引先への伝達事項）<textarea data-k="remarks" rows="3" placeholder="搬入経路、工事時間の制限、既存設備の状況など"></textarea></label>
+        <label class="wide block">備考・特記事項（お客様への説明事項）<textarea data-k="remarks" rows="3" placeholder="搬入経路、工事時間の制限、既存設備の状況など"></textarea></label>
       </section>
 
       <section class="card" id="works">
-        <div class="card-h"><h2>工事の選択</h2></div>
+        <div class="card-h"><h2>工事の種類</h2><span class="sub-h">選択した種類に応じて、Excelの出力形式が替わります。</span></div>
         <div class="fmt">
-          <div class="plumb-h"><b>工事の種類</b><span>選択した種類に応じて、Excelの出力形式が替わります。</span></div>
           <div class="seg" id="formats"></div>
         </div>
 
@@ -98,7 +74,6 @@
     <div class="sum-body">
       <h4>出力の内容</h4>
       <dl>
-        <div><dt>構造・階数</dt><dd id="sStruct">—</dd></div>
         <div><dt>工事の種類</dt><dd id="sType">—</dd></div>
         <div id="sFixRow" hidden><dt>水回りの設備</dt><dd id="sPlumb">—</dd></div>
         <div><dt>工事</dt><dd id="sWorks">—</dd></div>

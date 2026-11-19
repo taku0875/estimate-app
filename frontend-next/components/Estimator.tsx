@@ -71,7 +71,6 @@ export default function Estimator() {
   const todo = items.filter(needsQty).length;
   const showPlumb = hasFixtureItems(cats, floors, format);
   const plLabel = plumbingLabel(cats, plumbing, cond, format);
-  const structLabel = `${STRUCT[structure]}・${FLOOR_LABEL[floors]}`;
 
   const setP = (k: keyof Prop) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setProp(p => ({ ...p, [k]: e.target.value }));
@@ -109,7 +108,7 @@ export default function Estimator() {
 
   // ---- 出力するデータ(バックエンドの ExportRequest と同じ形) ----
   const exportData = () => ({
-    property: { ...prop, company_name: COMPANY, floors, structure: STRUCT[structure], plumbing: plLabel, format },
+    property: { ...prop, company_name: COMPANY, plumbing: plLabel, format },
     categories: cats.map(c => ({
       name: c.name,
       items: c.items.filter(i => i.name.trim() && visible(i, cond)).map(i => ({
@@ -155,7 +154,7 @@ export default function Estimator() {
           <div><b>TSUMIKI</b></div>
         </div>
         <nav id="nav">
-          {[["property", "1", "物件情報"], ["works", "2", "工事の選択"], ["detail", "3", "内訳の確認"]].map(([id, n, t]) => (
+          {[["property", "1", "物件情報"], ["works", "2", "工事の種類"], ["detail", "3", "内訳の確認"]].map(([id, n, t]) => (
             <a key={id} href={`#${id}`} className={active === id ? "on" : ""}><i>{n}</i><span>{t}</span></a>
           ))}
         </nav>
@@ -178,39 +177,16 @@ export default function Estimator() {
                 </div>
               </div>
               {field("address", "物件所在地", { placeholder: "例: 名古屋市中区…" }, "wide")}
-              {field("start_date", "着工予定日", { type: "date" })}
-              {field("end_date", "完工予定日", { type: "date" })}
-              {field("work_period", "工事希望時期", { placeholder: "例: 2026年12月〜" })}
               {field("due_date", "見積提出期限", { type: "date" })}
             </div>
-            <div className="split">
-              <div>
-                <h3>構造</h3>
-                <div className="seg">
-                  {(Object.keys(STRUCT) as Structure[]).map(k => (
-                    <label key={k}><input type="radio" name="structure" checked={structure === k} onChange={() => setStructure(k)} />{STRUCT[k]}</label>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h3>階数</h3>
-                <div className="seg">
-                  {([1, 2, 3] as Floors[]).map(k => (
-                    <label key={k}><input type="radio" name="floors" checked={floors === k} onChange={() => setFloors(k)} />{FLOOR_LABEL[k]}</label>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <p className="hint">構造と階数に合わせて、工事内訳が絞り込まれます。数量は、内訳の表で直接入力します。</p>
-            <label className="wide block">備考・特記事項（お取引先への伝達事項）
+            <label className="wide block">備考・特記事項（お客様への説明事項）
               <textarea rows={3} value={prop.remarks} onChange={setP("remarks")} placeholder="搬入経路、工事時間の制限、既存設備の状況など" />
             </label>
           </section>
 
           <section className="card" id="works">
-            <div className="card-h"><h2>工事の選択</h2></div>
+            <div className="card-h"><h2>工事の種類</h2><span className="sub-h">選択した種類に応じて、Excelの出力形式が替わります。</span></div>
             <div className="fmt">
-              <div className="plumb-h"><b>工事の種類</b><span>選択した種類に応じて、Excelの出力形式が替わります。</span></div>
               <div className="seg">
                 {(Object.keys(FORMATS) as ExcelFormat[]).map(k => (
                   <button key={k} type="button" className={k === format ? "on" : ""} onClick={() => changeFormat(k)}>{FORMATS[k].name}</button>
@@ -245,7 +221,7 @@ export default function Estimator() {
 
           <section className="card" id="detail">
             <div className="card-h"><h2>内訳の確認</h2></div>
-            {cats.length === 0 ? <p className="empty">「工事の選択」で工事を選ぶと、内訳がここに表示されます。</p> : cats.map(c => (
+            {cats.length === 0 ? <p className="empty">「工事の種類」を選ぶと、内訳がここに表示されます。</p> : cats.map(c => (
               <details key={c.id} open={openCats.has(c.id)} onToggle={e => {
                 const open = (e.currentTarget as HTMLDetailsElement).open;
                 setOpenCats(s => (s.has(c.id) === open ? s : toggle(s, c.id, open)));
@@ -287,7 +263,6 @@ export default function Estimator() {
         <div className="sum-body">
           <h4>出力の内容</h4>
           <dl>
-            <div><dt>構造・階数</dt><dd>{structLabel}</dd></div>
             <div><dt>工事の種類</dt><dd>{FORMATS[format].name}</dd></div>
             {format === "mizumawari" && <div><dt>水回りの設備</dt><dd>{plLabel || "なし"}</dd></div>}
             <div><dt>工事</dt><dd>{cats.length}工事</dd></div>

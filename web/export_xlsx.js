@@ -230,9 +230,8 @@ function writePropertySheet(ps, p) {
   ps.getColumn(1).width = 22; ps.getColumn(2).width = 48;
   ps.getCell(1, 1).value = "物件情報（見積条件）"; ps.getCell(1, 1).font = xfont(16, true);
   const rows = [
-    ["お施主様名（法人の名称）", p.customer_company], ["お施主様名（個人の名前）", p.customer_name], ["物件所在地", p.address], ["構造・工法", p.structure],
-    ["着工予定日", dateJp(p.start_date)], ["完工予定日", dateJp(p.end_date)], ["見積提出期限", dateJp(p.due_date)], ["工事希望時期", p.work_period],
-    ["階数", FLOOR_LABEL[p.floors]], ["水回りの範囲", p.plumbing], ["備考・特記事項", p.remarks],
+    ["お施主様名（法人の名称）", p.customer_company], ["お施主様名（個人の名前）", p.customer_name], ["物件所在地", p.address],
+    ["見積提出期限", dateJp(p.due_date)], ["水回りの範囲", p.plumbing], ["備考・特記事項", p.remarks],
   ];
   const box = { left: THIN, right: THIN, top: THIN, bottom: THIN };
   rows.forEach(([label, value], i) => {
