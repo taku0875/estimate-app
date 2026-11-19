@@ -271,7 +271,7 @@ export default function Estimator() {
           </dl>
         </div>
         <div className="sum-actions">
-          <span id="status">{msg || `${cats.length}工事 / ${items.length}項目 を出力`}</span>
+          <span id="status">{msg}</span>
           <button className="ghost" title="今の項目構成を次回以降のひな形として保存" onClick={saveCatalog}>ひな形として保存</button>
           <button className="primary" disabled={busy} onClick={doExport}>{busy ? "作成中…" : "Excelを出力"}</button>
         </div>

@@ -131,8 +131,6 @@ function renderDetail() {
       <div class="tools"><button class="mini" data-act="add">＋ 項目を追加</button><button class="mini" data-act="addg">＋ 見出し(【 】)を追加</button></div>
     </details>`).join("") : `<p class="empty">「工事の種類」を選ぶと、内訳がここに表示されます。</p>`;
   renderSummary(cats);
-  const n = cats.reduce((s, c) => s + visibleItems(c).length, 0);
-  $("#status").textContent = `${cats.length}工事 / ${n}項目 を出力`;
 }
 
 // 右側の「出力の内容」と左ナビの補足
