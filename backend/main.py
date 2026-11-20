@@ -46,8 +46,15 @@ CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' 
        "base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
 
 
+MAX_BODY_BYTES = 5_000_000  # これより大きいリクエストは受け付けない(メモリを使い切られないため)
+
+
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
+    declared = request.headers.get("content-length", "")
+    if request.url.path.startswith("/api/") and (not declared.isdigit() and request.method in ("POST", "PUT")
+                                                 or declared.isdigit() and int(declared) > MAX_BODY_BYTES):
+        return Response("リクエストが大きすぎます", status_code=413)
     res = await call_next(request)
     res.headers.setdefault("X-Content-Type-Options", "nosniff")
     res.headers.setdefault("X-Frame-Options", "DENY")

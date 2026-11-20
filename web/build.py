@@ -58,12 +58,18 @@ const CATALOG = {catalog};
 # claude.ai の Artifact 用(ページ側で doctype/head が付与されるため、断片のまま)
 (HERE / "dist" / "artifact.html").write_text(out, encoding="utf-8")
 # 通常のWebサイト用(静的ホスティングにそのまま置ける完全なHTML)
+# 静的ホスティング用: 自分のスクリプトとExcelJS(cdnjs)以外は実行せず、外への通信もさせない
+CSP = ("default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
+       "style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; "
+       "connect-src 'none'; base-uri 'none'; form-action 'none'")
+CSP_META = f'<meta http-equiv="Content-Security-Policy" content="{CSP}">\n'
 meta = '<meta name="claude:viewport-fit-sides" content="cover">\n'
 page = out.replace(meta, "")
 head_end = page.index("</style>") + len("</style>")
 standalone = (
     '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
     '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+    + CSP_META + '<meta name="referrer" content="strict-origin-when-cross-origin">\n'
     + page[:head_end] + "\n</head>\n<body>" + page[head_end:] + "</body>\n</html>\n"
 )
 (HERE / "dist" / "index.html").write_text(standalone, encoding="utf-8")
