@@ -161,7 +161,7 @@ export default function Estimator() {
 
       <div className="content">
         <header className="top">
-          <div className="crumb"><b>新規の見積依頼</b></div>
+          <div className="crumb"><img className="mark" src="/logo-mark.png" alt="" /><b>新規の見積依頼</b></div>
         </header>
 
         <main>

@@ -34,7 +34,9 @@ body = re.sub(r'<script src="(app|config).js"></script>\s*', "", body)
 body = re.sub(r'<button id="saveCatalog".*?</button>', "", body)
 import base64
 logo_uri = "data:image/png;base64," + base64.b64encode((ROOT / "frontend" / "logo.png").read_bytes()).decode()
-body = body.replace('src="logo.png"', f'src="{logo_uri}"')  # ロゴは画像ファイルを使わず、ページに埋め込む
+mark_uri = "data:image/png;base64," + base64.b64encode((ROOT / "frontend" / "logo-mark.png").read_bytes()).decode()
+body = body.replace('src="logo.png"', f'src="{logo_uri}"').replace('src="logo-mark.png"', f'src="{mark_uri}"')
+css = css.replace("url(logo-mark.png)", f"url({mark_uri})")  # ロゴは画像ファイルを使わず、ページに埋め込む
 body = body.replace('<p class="banner" id="sampleNote" hidden>', '<p class="banner" id="sampleNote">')
 
 extra_css = """

@@ -180,3 +180,14 @@ button{font:inherit;cursor:pointer;border-radius:9px;padding:10px 18px;transitio
   .seg button{flex:1 1 auto;padding:7px 10px;justify-content:center}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
+
+/* せしゅらくのロゴ(4色の棒)を使った飾り */
+.logo{width:84px}
+.top{border-bottom:0}
+.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,#50abca 0 25%,#95b94b 25% 50%,#edd54d 50% 75%,#e79f4a 75%)}
+.crumb{align-items:center;gap:10px}.crumb .mark{height:26px;width:auto;flex:none}
+.card-h{position:relative;overflow:hidden;padding-right:84px}
+.card-h::after{content:"";position:absolute;right:20px;top:50%;transform:translateY(-50%);width:46px;height:32px;background:url(logo-mark.png) center/contain no-repeat}
+.sum-body{position:relative}
+.sum-body::after{content:"";position:absolute;right:16px;top:12px;width:38px;height:27px;background:url(logo-mark.png) center/contain no-repeat}
+@media (max-width:760px){.card-h::after{display:none}.card-h{padding-right:16px}}
