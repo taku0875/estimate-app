@@ -1,4 +1,4 @@
-﻿# TSUMIKI
+﻿# せしゅらく
 
 物件情報と、工事の種類・水回りの範囲から、**単価欄が空のExcel見積依頼書**を作るツールです。数量は案件ごとに内訳の表で手入力します。
 元フォーマットは「リフォーム・リノベーション工事見積書」。業者は黄色の単価欄に入力するだけで、金額・小計・合計が計算されます。
@@ -10,7 +10,7 @@
 | Webアプリ（FastAPI + HTML） | `backend/` `frontend/` | 自社サーバーで運用する本番用 |
 | Next.js フロント（npm管理） | `frontend-next/` | `frontend/` と同じ画面を Next.js(React) で作り直したもの。FastAPI と組み合わせて使う |
 | 単体HTML（サーバー不要） | `web/dist/index.html` | ネットに公開して見せる・社外に共有する |
-| Excel版（マクロなし） | `excel/TSUMIKI.xlsx` | Excelだけで完結させたいとき（旧仕様のまま。下の注意を参照） |
+| Excel版（マクロなし） | `excel/せしゅらく.xlsx` | Excelだけで完結させたいとき（旧仕様のまま。下の注意を参照） |
 
 DB（RDB）は使いません。標準の工事項目は `backend/catalog.json` のファイル1つで管理します。
 
@@ -33,7 +33,7 @@ estimate_app/
 │  └─ dist/index.html    ← 静的ホスティングにそのまま置ける
 ├─ excel/                Excel版
 │  ├─ build_excel.py     catalog.json から .xlsx を生成
-│  └─ TSUMIKI.xlsx
+│  └─ せしゅらく.xlsx
 └─ start.bat             手元で起動（Windows）
 ```
 
@@ -180,3 +180,7 @@ python excel/build_excel.py
 - 依存パッケージ: `pip-audit`・`npm audit` とも脆弱性なし。PHP・nginx は使っていません。
 - 画面の描画: 利用者が入力した文字は、すべてエスケープして表示しています。秘密情報や鍵はリポジトリに含まれていません。
 - 追加した対策: 単体HTML版に CSP（外部への通信を禁止、スクリプトは自分と ExcelJS のみ）を追加。API に 5MB の受信上限を追加（超えると 413）。
+
+## ロゴ
+
+ロゴの元データ（PNG・Illustrator）は `assets/` にあります。画面用に縮小した `frontend/logo.png`（Next.js版は `frontend-next/public/logo.png`）を使い、単体HTML版には画像を埋め込んでいます。

@@ -34,7 +34,7 @@ def catalog_write_enabled() -> bool:
     return _flag("ENABLE_CATALOG_WRITE", "0")
 
 
-app = FastAPI(title="TSUMIKI", docs_url="/docs" if ENABLE_DOCS else None,
+app = FastAPI(title="せしゅらく", docs_url="/docs" if ENABLE_DOCS else None,
               redoc_url=None, openapi_url="/openapi.json" if ENABLE_DOCS else None)
 app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_methods=["GET", "POST", "PUT"],
                    allow_headers=["Content-Type"], expose_headers=["Content-Disposition"])

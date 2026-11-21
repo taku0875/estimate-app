@@ -1,5 +1,5 @@
 "use client";
-// TSUMIKIの画面(Next.js 版)。frontend/app.js と同じ流れ:
+// せしゅらくの画面(Next.js 版)。frontend/app.js と同じ流れ:
 // 物件情報 → 工事と水回りの範囲 → 内訳に数量を入力 → Excel を出力(FastAPI の /api/export)
 import { useEffect, useMemo, useState } from "react";
 import type { Category, CatalogData, ExcelFormat, Floors, Item, Plumbing, Preset, Prop, Structure } from "@/lib/types";
@@ -150,8 +150,7 @@ export default function Estimator() {
     <div className="app">
       <aside className="side">
         <div className="brand">
-          <svg className="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#3b4533" /><rect x="5" y="17" width="10" height="10" rx="2" fill="#a9d46a" /><rect x="17" y="17" width="10" height="10" rx="2" fill="#a9d46a" /><rect x="11" y="5" width="10" height="10" rx="2" fill="#a9d46a" /></svg>
-          <div><b>TSUMIKI</b></div>
+          <img className="logo" src="/logo.png" alt="せしゅらく" />
         </div>
         <nav id="nav">
           {[["property", "1", "物件情報"], ["works", "2", "工事の種類"], ["detail", "3", "内訳の確認"]].map(([id, n, t]) => (

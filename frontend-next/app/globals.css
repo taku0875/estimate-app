@@ -1,4 +1,4 @@
-/* TSUMIKI: 黄緑・白・黒。左ナビ + 中央の作業エリア + 右の出力サマリ */
+/* せしゅらく: 黄緑・白・黒。左ナビ + 中央の作業エリア + 右の出力サマリ */
 :root{
   --paper:#fbfcf7;--bg:#eef1e6;--card:var(--paper);--line:#dfe4d3;--line2:#c8d0b8;--ink:#2b3325;--sub:#657060;
   --black:#3b4533;--black2:#3b4533;--navink:#c9ccc2;
@@ -17,7 +17,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.7 "Noto Sans JP"
 /* ---- 左ナビ ---- */
 .side{background:var(--side);color:#14200a;padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:28px}
 .brand{display:flex;align-items:center;gap:11px;padding:0 8px}
-.logo{width:34px;height:34px;flex:none}
+.logo{width:120px;height:auto;flex:none;display:block}
 .brand b{display:block;color:var(--black);font-family:'Orbitron','Share Tech Mono',monospace;text-transform:uppercase;font-size:19px;font-weight:800;line-height:1.1;letter-spacing:.08em}
 .brand small{color:#1f3308;font-size:10px;font-weight:700;letter-spacing:.28em}
 #nav{display:flex;flex-direction:column;gap:4px}

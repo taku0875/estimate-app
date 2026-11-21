@@ -32,6 +32,9 @@ js = replace_between(js, "// ---- Excelを出力・ひな形として保存(サ�
 body = re.search(r"<body>(.*)</body>", html, re.S).group(1)
 body = re.sub(r'<script src="(app|config).js"></script>\s*', "", body)
 body = re.sub(r'<button id="saveCatalog".*?</button>', "", body)
+import base64
+logo_uri = "data:image/png;base64," + base64.b64encode((ROOT / "frontend" / "logo.png").read_bytes()).decode()
+body = body.replace('src="logo.png"', f'src="{logo_uri}"')  # ロゴは画像ファイルを使わず、ページに埋め込む
 body = body.replace('<p class="banner" id="sampleNote" hidden>', '<p class="banner" id="sampleNote">')
 
 extra_css = """
@@ -40,7 +43,7 @@ extra_css = """
 @media (max-width:1180px){.summary{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
 """
 
-out = f"""<title>TSUMIKI</title>
+out = f"""<title>せしゅらく</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap">
 <style>
@@ -69,7 +72,7 @@ head_end = page.index("</style>") + len("</style>")
 standalone = (
     '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
     '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
-    + CSP_META + '<meta name="referrer" content="strict-origin-when-cross-origin">\n'
+    + f'<link rel="icon" href="{logo_uri}">\n' + CSP_META +'<meta name="referrer" content="strict-origin-when-cross-origin">\n'
     + page[:head_end] + "\n</head>\n<body>" + page[head_end:] + "</body>\n</html>\n"
 )
 (HERE / "dist" / "index.html").write_text(standalone, encoding="utf-8")

@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-export const metadata: Metadata = { title: "TSUMIKI", description: "見積依頼書(Excel)を作るツール" };
+export const metadata: Metadata = { title: "せしゅらく", icons: { icon: "/logo.png" }, description: "見積依頼書(Excel)を作るツール" };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

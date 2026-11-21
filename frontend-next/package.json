@@ -1,8 +1,8 @@
 {
-  "name": "tsumiki-frontend",
+  "name": "seshuraku-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "TSUMIKI 見積依頼書ジェネレーター(Next.js フロントエンド)",
+  "description": "せしゅらく 見積依頼書ジェネレーター(Next.js フロントエンド)",
   "engines": {
     "node": ">=20.9.0",
     "npm": ">=10"
